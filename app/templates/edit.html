@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><title>Edit Record</title></head>
+<body>
+
+<h2>Edit Stroke Record</h2>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    Gender: <input type="text" name="gender" value="{{ record.gender }}"><br><br>
+    Age: <input type="text" name="age" value="{{ record.age }}"><br><br>
+    Hypertension: <input type="text" name="hypertension" value="{{ record.hypertension }}"><br><br>
+    Heart Disease: <input type="text" name="heart_disease" value="{{ record.heart_disease }}"><br><br>
+    Married: <input type="text" name="ever_married" value="{{ record.ever_married }}"><br><br>
+    Work Type: <input type="text" name="work_type" value="{{ record.work_type }}"><br><br>
+    Residence Type: <input type="text" name="Residence_type" value="{{ record.Residence_type }}"><br><br>
+    Glucose Level: <input type="text" name="avg_glucose_level" value="{{ record.avg_glucose_level }}"><br><br>
+    BMI: <input type="text" name="bmi" value="{{ record.bmi }}"><br><br>
+    Smoking Status: <input type="text" name="smoking_status" value="{{ record.smoking_status }}"><br><br>
+    Stroke: <input type="text" name="stroke" value="{{ record.stroke }}"><br><br>
+
+    <button type="submit">Save</button>
+</form>
+
+<a href="/records">Back to Records</a>
+
+</body>
+</html>
