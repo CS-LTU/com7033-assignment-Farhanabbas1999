@@ -4,6 +4,16 @@ from werkzeug.security import check_password_hash
 from ..models import User
 from ..extensions import db
 
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+@auth_bp.route("/login_select")
+def login_select():
+    return render_template("login_select.html")
+
+@auth_bp.route("/register")
+def register():
+    ...
+
 auth_bp = Blueprint("auth", __name__, template_folder="../templates")
 
 
