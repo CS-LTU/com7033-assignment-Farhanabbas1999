@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from datetime import datetime
-from app.extensions import db, mongo
-from app.models import User
+from app.extensions import mongo
+from bson.objectid import ObjectId
+import datetime
 
 patient_bp = Blueprint('patient', __name__)
 
@@ -13,106 +13,46 @@ def dashboard():
         flash('Access denied', 'danger')
         return redirect(url_for('main.index'))
     
-    # Try to get patient data from MongoDB, fallback to None
-    try:
-        patient = mongo.db.patients.find_one({'user_id': current_user.id}) if mongo.db else None
-    except:
-        patient = None
+    # Get patient record from MongoDB
+    patient = mongo.db.patients.find_one({'user_id': current_user.id})
     
-    # Get statistics
-    total_appointments = 0
-    pending_tests = 0
-    recent_visits = []
+    stats = {
+        'upcoming_appointments': 2,
+        'last_visit': 'Nov 15, 2025',
+        'health_status': 'Stable'
+    }
     
-    return render_template('patient/dashboard.html',
-                         patient=patient,
-                         total_appointments=total_appointments,
-                         pending_tests=pending_tests,
-                         recent_visits=recent_visits)
+    return render_template('patient/dashboard.html', stats=stats, patient=patient)
+
+@patient_bp.route('/records')
+@login_required
+def records():
+    patient = mongo.db.patients.find_one({'user_id': current_user.id})
+    return render_template('patient/records.html', patient=patient)
+
+@patient_bp.route('/book-appointment', methods=['GET', 'POST'])
+@login_required
+def book_appointment():
+    if request.method == 'POST':
+        doctor_id = request.form.get('doctor_id')
+        appointment_date = request.form.get('appointment_date')
+        
+        appointment = {
+            'patient_id': current_user.id,
+            'doctor_id': int(doctor_id),
+            'date': appointment_date,
+            'status': 'Pending',
+            'created_at': datetime.datetime.utcnow()
+        }
+        
+        mongo.db.appointments.insert_one(appointment)
+        flash('Appointment booked successfully', 'success')
+        return redirect(url_for('patient.dashboard'))
+    
+    return render_template('patient/book_appointment.html')
 
 @patient_bp.route('/profile')
 @login_required
 def profile():
-    if current_user.role.name != 'patient':
-        flash('Access denied', 'danger')
-        return redirect(url_for('main.index'))
-    
-    try:
-        patient = mongo.db.patients.find_one({'user_id': current_user.id}) if mongo.db else None
-    except:
-        patient = None
-    
+    patient = mongo.db.patients.find_one({'user_id': current_user.id})
     return render_template('patient/profile.html', patient=patient)
-
-@patient_bp.route('/appointments')
-@login_required
-def appointments():
-    if current_user.role.name != 'patient':
-        flash('Access denied', 'danger')
-        return redirect(url_for('main.index'))
-    
-    try:
-        appointments = list(mongo.db.appointments.find({'patient_id': current_user.id})) if mongo.db else []
-    except:
-        appointments = []
-    
-    return render_template('patient/appointments.html', appointments=appointments)
-
-@patient_bp.route('/medical-records')
-@login_required
-def medical_records():
-    if current_user.role.name != 'patient':
-        flash('Access denied', 'danger')
-        return redirect(url_for('main.index'))
-    
-    try:
-        records = list(mongo.db.medical_records.find({'patient_id': current_user.id})) if mongo.db else []
-    except:
-        records = []
-    
-    return render_template('patient/medical_records.html', records=records)
-
-@patient_bp.route('/stroke-assessment', methods=['GET', 'POST'])
-@login_required
-def stroke_assessment():
-    if current_user.role.name != 'patient':
-        flash('Access denied', 'danger')
-        return redirect(url_for('main.index'))
-    
-    if request.method == 'POST':
-        # Get form data
-        age = request.form.get('age')
-        gender = request.form.get('gender')
-        hypertension = request.form.get('hypertension')
-        heart_disease = request.form.get('heart_disease')
-        smoking_status = request.form.get('smoking_status')
-        bmi = request.form.get('bmi')
-        glucose_level = request.form.get('glucose_level')
-        
-        # TODO: Implement stroke risk prediction model
-        # For now, just save the data
-        
-        try:
-            if mongo.db:
-                assessment_data = {
-                    'user_id': current_user.id,
-                    'username': current_user.username,
-                    'age': age,
-                    'gender': gender,
-                    'hypertension': hypertension,
-                    'heart_disease': heart_disease,
-                    'smoking_status': smoking_status,
-                    'bmi': bmi,
-                    'glucose_level': glucose_level,
-                    'timestamp': datetime.utcnow()
-                }
-                mongo.db.stroke_assessments.insert_one(assessment_data)
-                flash('Stroke assessment submitted successfully!', 'success')
-            else:
-                flash('Assessment service temporarily unavailable.', 'warning')
-        except:
-            flash('Error submitting assessment. Please try again.', 'danger')
-        
-        return redirect(url_for('patient.dashboard'))
-    
-    return render_template('patient/stroke_assessment.html')

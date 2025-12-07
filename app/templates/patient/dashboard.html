@@ -34,43 +34,49 @@
         margin-left: 250px;
         padding: 20px;
         background-color: #f8f9fa;
-        min-height: 100vh;
     }
 
     .stat-card {
         border: none;
-        border-radius: 10px;
+        border-radius: 8px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
     }
 
-    .stat-card:hover {
-        transform: translateY(-5px);
+    .stat-card-1 {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .stat-card-2 {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .stat-card-3 {
+        background: linear-gradient(135deg, var(--light) 0%, var(--lighter) 100%);
+        color: var(--primary);
     }
 </style>
 
-<div class="d-flex">
+<div class="d-flex" style="min-height: 100vh;">
     <!-- Sidebar -->
     <div class="sidebar text-white p-4">
         <h4 class="mb-4">
-            <i class="fas fa-user"></i> Patient Panel
+            <i class="fas fa-user-injured"></i> {{ current_user.username }}
         </h4>
         <hr class="bg-light">
         <nav class="nav flex-column">
             <a class="nav-link active" href="{{ url_for('patient.dashboard') }}">
                 <i class="fas fa-home"></i> Dashboard
             </a>
-            <a class="nav-link" href="{{ url_for('patient.profile') }}">
-                <i class="fas fa-user-circle"></i> My Profile
-            </a>
-            <a class="nav-link" href="{{ url_for('patient.appointments') }}">
-                <i class="fas fa-calendar-alt"></i> Appointments
-            </a>
-            <a class="nav-link" href="{{ url_for('patient.medical_records') }}">
+            <a class="nav-link" href="{{ url_for('patient.records') }}">
                 <i class="fas fa-file-medical"></i> Medical Records
             </a>
-            <a class="nav-link" href="{{ url_for('patient.stroke_assessment') }}">
-                <i class="fas fa-heartbeat"></i> Stroke Assessment
+            <a class="nav-link" href="{{ url_for('patient.book_appointment') }}">
+                <i class="fas fa-calendar-plus"></i> Book Appointment
+            </a>
+            <a class="nav-link" href="{{ url_for('patient.profile') }}">
+                <i class="fas fa-user"></i> Profile
             </a>
             <hr class="bg-light">
             <a class="nav-link" href="{{ url_for('auth.logout') }}">
@@ -81,99 +87,53 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="mb-4">
-            <h2>Welcome, {{ current_user.username }}</h2>
-            <p class="text-muted">Patient Dashboard</p>
-        </div>
+        <h2 class="mb-4">Welcome, {{ current_user.username }}</h2>
 
-        <!-- Stats Cards -->
+        <!-- Stats -->
         <div class="row mb-4">
             <div class="col-md-4">
-                <div class="card stat-card" style="background: linear-gradient(135deg, #3674B5 0%, #578FCA 100%); color: white;">
-                    <div class="card-body text-center">
-                        <i class="fas fa-calendar-check fa-3x mb-2"></i>
-                        <h6>Total Appointments</h6>
-                        <h2>{{ total_appointments }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white;">
-                    <div class="card-body text-center">
-                        <i class="fas fa-vial fa-3x mb-2"></i>
-                        <h6>Pending Tests</h6>
-                        <h2>{{ pending_tests }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
-                    <div class="card-body text-center">
-                        <i class="fas fa-hospital fa-3x mb-2"></i>
-                        <h6>Recent Visits</h6>
-                        <h2>{{ recent_visits|length }}</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header" style="background-color: var(--lighter);">
-                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
-                    </div>
+                <div class="card stat-card stat-card-1">
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('patient.stroke_assessment') }}" class="btn btn-primary w-100">
-                                    <i class="fas fa-heartbeat"></i><br>Take Stroke Assessment
-                                </a>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('patient.appointments') }}" class="btn btn-info w-100">
-                                    <i class="fas fa-calendar-plus"></i><br>Book Appointment
-                                </a>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('patient.medical_records') }}" class="btn btn-success w-100">
-                                    <i class="fas fa-file-medical-alt"></i><br>View Records
-                                </a>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('patient.profile') }}" class="btn btn-secondary w-100">
-                                    <i class="fas fa-user-edit"></i><br>Update Profile
-                                </a>
-                            </div>
-                        </div>
+                        <h6>Upcoming Appointments</h6>
+                        <h2>{{ stats.upcoming_appointments }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-2">
+                    <div class="card-body">
+                        <h6>Last Visit</h6>
+                        <p class="mb-0">{{ stats.last_visit }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-3">
+                    <div class="card-body">
+                        <h6>Health Status</h6>
+                        <p class="mb-0">{{ stats.health_status }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Health Information -->
+        <!-- Medical Record -->
+        {% if patient %}
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header" style="background-color: var(--lighter);">
-                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Health Information</h5>
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Your Medical Record</h5>
                     </div>
                     <div class="card-body">
-                        {% if patient %}
-                            <p><strong>Patient ID:</strong> {{ patient._id }}</p>
-                            <p><strong>Name:</strong> {{ patient.name or 'N/A' }}</p>
-                            <p><strong>Age:</strong> {{ patient.age or 'N/A' }}</p>
-                            <p><strong>Gender:</strong> {{ patient.gender or 'N/A' }}</p>
-                        {% else %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> No patient profile found. Please complete your profile.
-                            </div>
-                        {% endif %}
+                        <p><strong>Patient ID:</strong> {{ patient._id }}</p>
+                        <p><strong>Assigned Doctor:</strong> Doctor #{{ patient.assigned_doctor }}</p>
+                        <p><strong>Medical Notes:</strong> {{ patient.medical_notes or 'No notes yet' }}</p>
                     </div>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 

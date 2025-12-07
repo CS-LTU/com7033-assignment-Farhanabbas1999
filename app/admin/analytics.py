@@ -1,89 +1,52 @@
-import pandas as pd
-import os
+from app.extensions import mongo
+import json
 
 def get_stroke_analytics():
-    try:
-        csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'healthcare-dataset-stroke-data.csv')
-        df = pd.read_csv(csv_path)
+    """Get analytics from stroke dataset"""
+    stroke_data = list(mongo.db.stroke_data.find())
+    
+    if not stroke_data:
+        return {}
+    
+    # Stroke cases by gender
+    gender_stats = {}
+    age_stats = {}
+    bmi_stats = {'low': 0, 'normal': 0, 'overweight': 0, 'obese': 0}
+    
+    for record in stroke_data:
+        # Gender analysis
+        gender = record.get('gender', 'Unknown')
+        stroke = record.get('stroke', 0)
+        gender_stats[gender] = gender_stats.get(gender, {'total': 0, 'stroke': 0})
+        gender_stats[gender]['total'] += 1
+        gender_stats[gender]['stroke'] += int(stroke)
         
-        # Age groups
-        df['age_group'] = pd.cut(df['age'], bins=[0, 18, 35, 50, 65, 100], 
-                                  labels=['0-18', '19-35', '36-50', '51-65', '65+'])
-        age_stats = df[df['stroke'] == 1].groupby('age_group', observed=True).size().to_dict()
-        age_stats = {str(k): int(v) for k, v in age_stats.items()}
+        # Age group analysis
+        age = record.get('age', 0)
+        age_group = f"{int(age//10)*10}-{int(age//10)*10 + 9}"
+        age_stats[age_group] = age_stats.get(age_group, {'total': 0, 'stroke': 0})
+        age_stats[age_group]['total'] += 1
+        age_stats[age_group]['stroke'] += int(stroke)
         
-        # Gender stats
-        gender_stats = df['gender'].value_counts().to_dict()
-        gender_stats = {str(k): int(v) for k, v in gender_stats.items()}
-        
-        # Hypertension stats
-        hypertension_stats = df['hypertension'].value_counts().to_dict()
-        hypertension_stats = {str(k): int(v) for k, v in hypertension_stats.items()}
-        
-        # Heart disease stats
-        heart_disease_stats = df['heart_disease'].value_counts().to_dict()
-        heart_disease_stats = {str(k): int(v) for k, v in heart_disease_stats.items()}
-        
-        # Work Type vs Stroke
-        work_type_stroke = df[df['stroke'] == 1]['work_type'].value_counts().to_dict()
-        work_type_no_stroke = df[df['stroke'] == 0]['work_type'].value_counts().to_dict()
-        
-        all_work_types = list(set(list(work_type_stroke.keys()) + list(work_type_no_stroke.keys())))
-        
-        work_type_data = {
-            'labels': all_work_types,
-            'stroke': [int(work_type_stroke.get(label, 0)) for label in all_work_types],
-            'no_stroke': [int(work_type_no_stroke.get(label, 0)) for label in all_work_types]
-        }
-        
-        # BMI groups
-        df['bmi_group'] = pd.cut(df['bmi'].dropna(), bins=[0, 18.5, 25, 30, 100],
-                                 labels=['Underweight', 'Normal', 'Overweight', 'Obese'])
-        bmi_stroke = df[df['stroke'] == 1]['bmi_group'].value_counts().to_dict()
-        bmi_no_stroke = df[df['stroke'] == 0]['bmi_group'].value_counts().to_dict()
-        
-        bmi_labels = ['Underweight', 'Normal', 'Overweight', 'Obese']
-        bmi_stroke_data = {
-            'labels': bmi_labels,
-            'stroke': [int(bmi_stroke.get(label, 0)) for label in bmi_labels],
-            'no_stroke': [int(bmi_no_stroke.get(label, 0)) for label in bmi_labels]
-        }
-        
-        # Glucose levels
-        df['glucose_group'] = pd.cut(df['avg_glucose_level'], 
-                                     bins=[0, 100, 125, 200, 300],
-                                     labels=['Normal', 'Prediabetes', 'Diabetes', 'High'])
-        glucose_stroke = df[df['stroke'] == 1].groupby('glucose_group', observed=True).size().to_dict()
-        glucose_no_stroke = df[df['stroke'] == 0].groupby('glucose_group', observed=True).size().to_dict()
-        
-        glucose_labels = ['Normal', 'Prediabetes', 'Diabetes', 'High']
-        glucose_stroke_data = {
-            'labels': glucose_labels,
-            'stroke': [int(glucose_stroke.get(label, 0)) for label in glucose_labels],
-            'no_stroke': [int(glucose_no_stroke.get(label, 0)) for label in glucose_labels]
-        }
-        
-        return {
-            'total_records': int(len(df)),
-            'stroke_cases': int(len(df[df['stroke'] == 1])),
-            'gender_stats': gender_stats,
-            'age_stats': age_stats,
-            'hypertension_stats': hypertension_stats,
-            'heart_disease_stats': heart_disease_stats,
-            'work_type_data': work_type_data,
-            'bmi_stroke_data': bmi_stroke_data,
-            'glucose_stroke_data': glucose_stroke_data
-        }
-    except Exception as e:
-        print(f"Error loading analytics: {str(e)}")
-        return {
-            'total_records': 0,
-            'stroke_cases': 0,
-            'gender_stats': {},
-            'age_stats': {},
-            'hypertension_stats': {},
-            'heart_disease_stats': {},
-            'work_type_data': {'labels': [], 'stroke': [], 'no_stroke': []},
-            'bmi_stroke_data': {'labels': [], 'stroke': [], 'no_stroke': []},
-            'glucose_stroke_data': {'labels': [], 'stroke': [], 'no_stroke': []}
-        }
+        # BMI analysis
+        bmi = record.get('bmi', 0)
+        try:
+            bmi = float(bmi)
+            if bmi < 18.5:
+                bmi_stats['low'] += 1
+            elif bmi < 25:
+                bmi_stats['normal'] += 1
+            elif bmi < 30:
+                bmi_stats['overweight'] += 1
+            else:
+                bmi_stats['obese'] += 1
+        except:
+            pass
+    
+    return {
+        'gender_stats': gender_stats,
+        'age_stats': age_stats,
+        'bmi_stats': bmi_stats,
+        'total_records': len(stroke_data),
+        'stroke_cases': sum([r.get('stroke', 0) for r in stroke_data])
+    }

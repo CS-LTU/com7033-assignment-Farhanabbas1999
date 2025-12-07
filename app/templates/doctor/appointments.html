@@ -1,68 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Appointments{% endblock %}
+{% block title %}Reports{% endblock %}
 {% block content %}
-<style>
-    :root { --primary: #3674B5; --secondary: #578FCA; --light: #A1E3F9; --lighter: #D1F8EF; }
-    .sidebar { background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%); width: 250px; position: fixed; height: 100vh; overflow-y: auto; }
-    .sidebar .nav-link { color: #fff !important; padding: 12px 15px; border-radius: 5px; margin-bottom: 5px; }
-    .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: var(--light); color: var(--primary) !important; }
-    .main-content { margin-left: 250px; padding: 20px; background-color: #f8f9fa; }
-</style>
-
-<div class="d-flex" style="min-height: 100vh;">
-    <div class="sidebar text-white p-4">
-        <h4 class="mb-4"><i class="fas fa-user-md"></i> Dr. {{ current_user.username }}</h4>
-        <hr class="bg-light">
-        <nav class="nav flex-column">
-            <a class="nav-link" href="{{ url_for('doctor.dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
-            <a class="nav-link" href="{{ url_for('doctor.patients') }}"><i class="fas fa-users"></i> Patients</a>
-            <a class="nav-link active" href="{{ url_for('doctor.appointments') }}"><i class="fas fa-calendar-check"></i> Appointments</a>
-            <a class="nav-link" href="{{ url_for('doctor.reports') }}"><i class="fas fa-file-medical-alt"></i> Reports</a>
-            <a class="nav-link" href="{{ url_for('doctor.profile') }}"><i class="fas fa-user"></i> Profile</a>
-            <hr class="bg-light">
-            <a class="nav-link" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </nav>
-    </div>
-
-    <div class="main-content">
-        <div class="d-flex justify-content-between mb-4">
-            <h2>Appointments</h2>
-            <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr><th>Patient</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for appt in appointments %}
-                        <tr>
-                            <td>{{ appt.patient }}</td>
-                            <td>{{ appt.date }}</td>
-                            <td>{{ appt.time }}</td>
-                            <td><span class="badge bg-warning">{{ appt.status }}</span></td>
-                            <td>
-                                <form method="POST" action="{{ url_for('doctor.approve_appointment', appointment_id=appt.id) }}" style="display:inline;">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button class="btn btn-sm btn-success">Approve</button>
-                                </form>
-                                <form method="POST" action="{{ url_for('doctor.decline_appointment', appointment_id=appt.id) }}" style="display:inline;">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button class="btn btn-sm btn-danger">Decline</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="5" class="text-center text-muted">No appointments</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div style="margin-left: 250px; padding: 20px;">
+    <h2>System Reports</h2>
+    <p>Detailed analytics and reports coming soon...</p>
 </div>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
+
+from flask import Blueprint, render_template
+from flask_login import login_required, current_user
+from app.extensions import db
+from app.models import User, Role
+
+admin_bp = Blueprint('admin', __name__)
+
+@admin_bp.route('/dashboard')
+@login_required
+def dashboard():
+    total_users = User.query.count()
+    total_doctors = User.query.join(Role).filter(Role.name == 'doctor').count()
+    total_patients = User.query.join(Role).filter(Role.name == 'patient').count()
+    total_nurses = User.query.join(Role).filter(Role.name == 'nurse').count()
+    
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    
+    stats = {
+        'total_users': total_users,
+        'total_doctors': total_doctors,
+        'total_patients': total_patients,
+        'total_nurses': total_nurses,
+        'active_users': User.query.filter_by(is_active=True).count()
+    }
+    
+    return render_template('admin/dashboard.html', stats=stats, recent_users=recent_users)
+
+@admin_bp.route('/users')
+@login_required
+def users():
+    users = User.query.all()
+    return render_template('admin/users.html', users=users)
+
+@admin_bp.route('/reports')
+@login_required
+def reports():
+    return render_template('admin/reports.html')
+
+@admin_bp.route('/settings')
+@login_required
+def settings():
+    return render_template('admin/settings.html')
