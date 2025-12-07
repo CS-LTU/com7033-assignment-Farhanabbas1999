@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}My Records{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>My Medical Records</h1>
+    <p>View your stroke assessment records here.</p>
+    <a href="{{ url_for('patient.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}

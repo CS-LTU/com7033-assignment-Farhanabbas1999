@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Create User{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3">Create User</h3>
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <input name="username" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input name="email" type="email" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input name="password" type="password" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Role</label>
+      <select name="role" class="form-select" required>
+        {% for role in roles %}
+          <option value="{{ role.name }}">{{ role.name|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-primary">Create</button>
+    <a class="btn btn-secondary" href="{{ url_for('admin.users') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

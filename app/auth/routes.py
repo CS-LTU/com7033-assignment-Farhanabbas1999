@@ -1,79 +1,64 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required
-from ..models import User
-from ..extensions import db
+from flask_login import login_user, logout_user, current_user
+from app.extensions import db, mongo  # <-- add mongo
+from app.models import User, Role
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_bp = Blueprint('auth', __name__)
 
-
-# -----------------------
-# Login selection page
-# -----------------------
-@auth_bp.route("/login_select")
-def login_select():
-    return render_template("login_select.html")
-
-
-# -----------------------
-# Register
-# -----------------------
-@auth_bp.route("/register", methods=["GET", "POST"])
+@auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        role = request.form.get("role")   # added for role-based login
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role_name = request.form.get('role', 'patient')
 
         if User.query.filter_by(username=username).first():
-            flash("Username already exists")
-            return redirect(url_for("auth.register"))
+            flash('Username already exists', 'danger')
+            return redirect(url_for('auth.register'))
+        if User.query.filter_by(email=email).first():
+            flash('Email already exists', 'danger')
+            return redirect(url_for('auth.register'))
 
-        user = User(username=username, role=role)
+        role = Role.query.filter_by(name=role_name).first()
+        user = User(username=username, email=email, role_id=role.id)
         user.set_password(password)
-
         db.session.add(user)
         db.session.commit()
 
-        flash("User registered successfully")
-        return redirect(url_for("auth.login"))
+        if role_name == 'patient':
+            mongo.db.patients.insert_one({
+                'user_id': user.id,
+                'name': username,
+                'email': email,
+                'medical_history': [],
+                'vitals': [],
+                'created_at': __import__('datetime').datetime.utcnow()
+            })
 
-    return render_template("register.html")
+        flash('Registration successful. Please log in.', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html')
 
-
-# -----------------------
-# Login
-# -----------------------
-@auth_bp.route("/login", methods=["GET", "POST"])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
 
         user = User.query.filter_by(username=username).first()
 
-        if user and user.check_password(password):
-            login_user(user)
+        if user is None or not user.check_password(password):
+            flash('Invalid username or password', 'danger')
+            return redirect(url_for('auth.login'))
 
-            # Role-based redirects
-            if user.role == "admin":
-                return redirect(url_for("admin.dashboard"))
-            elif user.role == "doctor":
-                return redirect(url_for("doctor.dashboard"))
-            elif user.role == "nurse":
-                return redirect(url_for("nurse.dashboard"))
-            else:
-                return redirect(url_for("patient.dashboard"))
+        login_user(user)
+        return redirect(url_for(f'{user.role.name}.dashboard'))
 
-        flash("Invalid username or password")
+    return render_template('auth/login.html')
 
-    return render_template("login.html")   # actual login form
-
-
-# -----------------------
-# Logout
-# -----------------------
-@auth_bp.route("/logout")
-@login_required
+@auth_bp.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for("auth.login"))
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('main.index'))

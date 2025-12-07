@@ -1,1 +1,0 @@
-from . routes import nurse_bp

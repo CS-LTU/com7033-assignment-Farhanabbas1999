@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Nurse Dashboard{% endblock %}
+{% block content %}
+<style>
+    :root {
+        --primary: #3674B5;
+        --secondary: #578FCA;
+        --light: #A1E3F9;
+        --lighter: #D1F8EF;
+    }
+
+    .sidebar {
+        background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+        width: 250px;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .main-content {
+        margin-left: 250px;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+</style>
+
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- Sidebar -->
+    <div class="sidebar text-white p-4">
+        <h4 class="mb-4">
+            <i class="fas fa-stethoscope"></i> {{ current_user.username }}
+        </h4>
+        <hr class="bg-light">
+        <nav class="nav flex-column">
+            <a class="nav-link text-white active" href="{{ url_for('nurse.dashboard') }}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a class="nav-link text-white" href="{{ url_for('nurse.patients') }}">
+                <i class="fas fa-users"></i> Patients
+            </a>
+            <a class="nav-link text-white" href="{{ url_for('nurse.appointments') }}">
+                <i class="fas fa-calendar"></i> Appointments
+            </a>
+            <hr class="bg-light">
+            <a class="nav-link text-white" href="{{ url_for('auth.logout') }}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h2 class="mb-4">Nurse Dashboard</h2>
+
+        <!-- Stats -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white;">
+                    <div class="card-body">
+                        <h6>Total Patients</h6>
+                        <h2>{{ stats.total_patients }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
+                    <div class="card-body">
+                        <h6>Today's Patients</h6>
+                        <h2>{{ stats.today_patients }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white;">
+                    <div class="card-body">
+                        <h6>Pending Vitals</h6>
+                        <h2>{{ stats.pending_vitals }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient List -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header" style="background-color: var(--lighter);">
+                        <h5 class="mb-0">Patient List</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr style="color: var(--primary);">
+                                    <th>Patient Name</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients %}
+                                <tr>
+                                    <td>{{ patient.name }}</td>
+                                    <td>{{ patient.email }}</td>
+                                    <td>
+                                        <a href="{{ url_for('nurse.add_vitals', patient_id=patient._id) }}" class="btn btn-sm btn-primary">Add Vitals</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

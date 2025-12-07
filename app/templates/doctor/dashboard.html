@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+{% block content %}
+<style>
+    :root {
+        --primary: #3674B5;
+        --secondary: #578FCA;
+        --light: #A1E3F9;
+        --lighter: #D1F8EF;
+    }
+
+    .sidebar {
+        background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+        width: 250px;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .sidebar .nav-link {
+        color: #fff !important;
+        padding: 12px 15px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background-color: var(--light);
+        color: var(--primary) !important;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-card-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .stat-card-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .stat-card-info {
+        background: linear-gradient(135deg, var(--light) 0%, var(--lighter) 100%);
+        color: var(--primary);
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-header {
+        background-color: var(--lighter);
+        border-bottom: 2px solid var(--light);
+        border-radius: 8px 8px 0 0;
+    }
+
+    .badge-primary {
+        background-color: var(--primary) !important;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+    }
+
+    .main-content {
+        margin-left: 250px;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+
+    .ql-container {
+        height: 400px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- Sidebar -->
+    <div class="sidebar text-white p-4">
+        <h4 class="mb-4">
+            <i class="fas fa-user-md"></i> Dr. {{ current_user.username }}
+        </h4>
+        <hr class="bg-light">
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="{{ url_for('doctor.dashboard') }}">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="nav-link" href="{{ url_for('doctor.appointments') }}">
+                <i class="fas fa-calendar-check"></i> Appointments
+            </a>
+            <a class="nav-link" href="{{ url_for('doctor.patients') }}">
+                <i class="fas fa-users"></i> Patients
+            </a>
+            <a class="nav-link" href="{{ url_for('doctor.payments') }}">
+                <i class="fas fa-credit-card"></i> Payments
+            </a>
+            <a class="nav-link" href="{{ url_for('doctor.profile') }}">
+                <i class="fas fa-user-circle"></i> Profile
+            </a>
+            <hr class="bg-light">
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search Bar -->
+        <div class="mb-4">
+            <input type="text" class="form-control" placeholder="🔍 Search patients..." style="border: 2px solid var(--primary); border-radius: 8px; padding: 10px;">
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-primary">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Total Patients</h6>
+                        <h2 class="mb-0">{{ stats.total_patients }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-success">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Today's Patients</h6>
+                        <h2 class="mb-0">{{ stats.today_patients }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-info">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Today's Appointments</h6>
+                        <h2 class="mb-0">{{ stats.today_appointments }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & Calendar Row -->
+        <div class="row mb-4">
+            <!-- Chart -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Patient Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="patientChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Calendar</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="calendar" style="max-height: 350px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Appointments -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Upcoming Appointments</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr style="color: var(--primary);">
+                                    <th>#</th>
+                                    <th>Patient Name</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in appointments %}
+                                <tr>
+                                    <td>{{ apt.id }}</td>
+                                    <td>{{ apt.patient }}</td>
+                                    <td>{{ apt.time }}</td>
+                                    <td>
+                                        <span class="badge {% if apt.status == 'Confirmed' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ apt.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary">View</button>
+                                        <button class="btn btn-sm btn-danger">Cancel</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- Vanilla Calendar Pro -->
+<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.0.0/build/vanilla-calendar.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.0.0/build/vanilla-calendar.min.js"></script>
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+    // Patient Statistics Chart with custom colors
+    const ctx = document.getElementById('patientChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['New Patients', 'Old Patients', 'Total Patients'],
+            datasets: [{
+                label: 'Patient Count',
+                data: [12, 30, 42],
+                backgroundColor: ['#3674B5', '#578FCA', '#A1E3F9'],
+                borderColor: ['#3674B5', '#578FCA', '#A1E3F9'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Simple Calendar using Vanilla Calendar
+    new VanillaCalendar({
+        target: '#calendar',
+        type: 'default',
+        settings: {
+            lang: 'en',
+            iso8601: false,
+            max: null,
+            min: null,
+            range: {
+                disablePast: false,
+                disableFuture: false
+            },
+            selection: {
+                day: 'single',
+                month: 'single'
+            },
+            popups: [],
+            visibility: {
+                weekend: true,
+                today: true,
+                outside: false
+            }
+        }
+    }).init();
+</script>
+{% endblock %}
