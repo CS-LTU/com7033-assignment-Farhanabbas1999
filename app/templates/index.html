@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron">
+        <h1 class="display-4">Welcome to Stroke App</h1>
+        <p class="lead">Secure stroke assessment and patient management system.</p>
+        <hr class="my-4">
+        {% if current_user.is_authenticated %}
+            <p>Welcome, {{ current_user.username }}!</p>
+            <a class="btn btn-primary btn-lg" href="/{{ current_user.role }}/dashboard" role="button">Go to Dashboard</a>
+        {% else %}
+            <p>Please log in to continue.</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}" role="button">Login</a>
+            <a class="btn btn-secondary btn-lg" href="{{ url_for('auth.register') }}" role="button">Register</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

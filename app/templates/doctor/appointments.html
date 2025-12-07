@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div style="margin-left: 250px; padding: 20px;">
+    <h2>System Reports</h2>
+    <p>Detailed analytics and reports coming soon...</p>
+</div>
+{% endblock %}
+
+from flask import Blueprint, render_template
+from flask_login import login_required, current_user
+from app.extensions import db
+from app.models import User, Role
+
+admin_bp = Blueprint('admin', __name__)
+
+@admin_bp.route('/dashboard')
+@login_required
+def dashboard():
+    total_users = User.query.count()
+    total_doctors = User.query.join(Role).filter(Role.name == 'doctor').count()
+    total_patients = User.query.join(Role).filter(Role.name == 'patient').count()
+    total_nurses = User.query.join(Role).filter(Role.name == 'nurse').count()
+    
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    
+    stats = {
+        'total_users': total_users,
+        'total_doctors': total_doctors,
+        'total_patients': total_patients,
+        'total_nurses': total_nurses,
+        'active_users': User.query.filter_by(is_active=True).count()
+    }
+    
+    return render_template('admin/dashboard.html', stats=stats, recent_users=recent_users)
+
+@admin_bp.route('/users')
+@login_required
+def users():
+    users = User.query.all()
+    return render_template('admin/users.html', users=users)
+
+@admin_bp.route('/reports')
+@login_required
+def reports():
+    return render_template('admin/reports.html')
+
+@admin_bp.route('/settings')
+@login_required
+def settings():
+    return render_template('admin/settings.html')

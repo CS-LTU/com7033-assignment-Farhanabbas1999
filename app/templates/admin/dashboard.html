@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<style>
+    :root {
+        --primary: #3674B5;
+        --secondary: #578FCA;
+        --light: #A1E3F9;
+        --lighter: #D1F8EF;
+    }
+
+    .sidebar {
+        background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+        width: 250px;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .sidebar .nav-link {
+        color: #fff !important;
+        padding: 12px 15px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background-color: var(--light);
+        color: var(--primary) !important;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h6 {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-card h2 {
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    .stat-card-1 {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+    }
+
+    .stat-card-2 {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .stat-card-3 {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        color: white;
+    }
+
+    .stat-card-4 {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .stat-card-5 {
+        background: linear-gradient(135deg, var(--light) 0%, var(--lighter) 100%);
+        color: var(--primary);
+    }
+
+    .stat-card-6 {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-header {
+        background-color: var(--lighter);
+        border-bottom: 2px solid var(--light);
+        border-radius: 8px 8px 0 0;
+    }
+
+    .main-content {
+        margin-left: 250px;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+    }
+
+    .table thead th {
+        color: var(--primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--light);
+    }
+</style>
+
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- Sidebar -->
+    <div class="sidebar text-white p-4">
+        <h4 class="mb-4">
+            <i class="fas fa-shield-alt"></i> Admin
+        </h4>
+        <hr class="bg-light">
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="{{ url_for('admin.dashboard') }}">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="nav-link" href="{{ url_for('admin.users') }}">
+                <i class="fas fa-users"></i> Users
+            </a>
+            <a class="nav-link" href="{{ url_for('admin.patients') }}">
+                <i class="fas fa-file-medical"></i> Patients
+            </a>
+            <a class="nav-link" href="{{ url_for('admin.analytics') }}">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </a>
+            <a class="nav-link" href="{{ url_for('admin.reports') }}">
+                <i class="fas fa-file-alt"></i> Reports
+            </a>
+            <a class="nav-link" href="{{ url_for('admin.settings') }}">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <hr class="bg-light">
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="mb-4">
+            <h2 class="mb-2">Welcome, Admin {{ current_user.username }}</h2>
+            <p class="text-muted">Healthcare Stroke Management System</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6 col-lg-2">
+                <div class="card stat-card stat-card-1">
+                    <div class="card-body">
+                        <h6>Total Users</h6>
+                        <h2>{{ stats.total_users }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-2">
+                <div class="card stat-card stat-card-2">
+                    <div class="card-body">
+                        <h6>Doctors</h6>
+                        <h2>{{ stats.total_doctors }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-2">
+                <div class="card stat-card stat-card-3">
+                    <div class="card-body">
+                        <h6>Patients</h6>
+                        <h2>{{ stats.total_patients }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-2">
+                <div class="card stat-card stat-card-4">
+                    <div class="card-body">
+                        <h6>Nurses</h6>
+                        <h2>{{ stats.total_nurses }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-2">
+                <div class="card stat-card stat-card-5">
+                    <div class="card-body">
+                        <h6>Active Users</h6>
+                        <h2>{{ stats.active_users }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-2">
+                <div class="card stat-card stat-card-6">
+                    <div class="card-body">
+                        <h6>Stroke Cases</h6>
+                        <h2>{{ stats.stroke_cases }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <!-- Stroke by Gender -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Stroke Cases by Gender</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stroke by Age Group -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Stroke by Age Group</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BMI Analysis -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">BMI Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="bmiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Stats -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">System Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Total Dataset Records:</strong> {{ stats.total_dataset_records }}</p>
+                        <p><strong>Stroke Cases in Dataset:</strong> {{ stats.stroke_cases }}</p>
+                        <p><strong>Stroke Percentage:</strong> {{ ((stats.stroke_cases / stats.total_dataset_records) * 100) | round(2) }}%</p>
+                        <p><strong>System Users:</strong> {{ stats.total_users }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Users Table -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Users</h5>
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.email or 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ user.role.name if user.role else 'N/A' }}</span>
+                                        </td>
+                                        <td>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Edit</button>
+                                            <button class="btn btn-sm btn-danger">Delete</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+    // Parse data from Flask
+    const genderData = {{ gender_data | safe }};
+    const ageData = {{ age_data | safe }};
+    const bmiData = {{ bmi_data | safe }};
+
+    // Gender Chart
+    const genderCtx = document.getElementById('genderChart').getContext('2d');
+    const genderLabels = Object.keys(genderData);
+    const genderStroke = Object.values(genderData).map(g => g.stroke || 0);
+    
+    new Chart(genderCtx, {
+        type: 'bar',
+        data: {
+            labels: genderLabels,
+            datasets: [{
+                label: 'Stroke Cases',
+                data: genderStroke,
+                backgroundColor: ['#3674B5', '#578FCA', '#A1E3F9'],
+                borderColor: ['#3674B5', '#578FCA', '#A1E3F9'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Age Chart
+    const ageCtx = document.getElementById('ageChart').getContext('2d');
+    const ageLabels = Object.keys(ageData).sort();
+    const ageStroke = ageLabels.map(label => (ageData[label]?.stroke || 0));
+    
+    new Chart(ageCtx, {
+        type: 'line',
+        data: {
+            labels: ageLabels,
+            datasets: [{
+                label: 'Stroke Cases by Age',
+                data: ageStroke,
+                borderColor: '#3674B5',
+                backgroundColor: 'rgba(54, 116, 181, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5,
+                pointBackgroundColor: '#3674B5'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // BMI Chart
+    const bmiCtx = document.getElementById('bmiChart').getContext('2d');
+    new Chart(bmiCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low BMI', 'Normal', 'Overweight', 'Obese'],
+            datasets: [{
+                data: [bmiData.low, bmiData.normal, bmiData.overweight, bmiData.obese],
+                backgroundColor: ['#3674B5', '#578FCA', '#A1E3F9', '#D1F8EF'],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

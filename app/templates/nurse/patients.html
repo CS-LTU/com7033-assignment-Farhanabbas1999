@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Patient Care</h1>
+    <p>Nursing patient care interface.</p>
+    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}
