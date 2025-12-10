@@ -1,109 +1,67 @@
 {% extends "base.html" %}
-{% block title %}Appointments{% endblock %}
+{% block title %}Doctor Appointments{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2><i class="fas fa-calendar-alt"></i> Appointments Management</h2>
-                        <p class="mb-0">View and manage patient appointments</p>
-                    </div>
-                    <div>
-                        <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-light btn-lg">
-                            <i class="fas fa-arrow-left"></i> Back to Dashboard
-                        </a>
-                    </div>
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #a8c0ff 0%, #c2e9fb 100%);">
+                <div class="card-body text-white">
+                    <h2><i class="fas fa-calendar-check"></i> My Appointments</h2>
+                    <p class="mb-0">View and manage your appointments</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-warning text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x mb-2"></i>
-                    <h3>{{ pending|length }}</h3>
-                    <p class="mb-0">Pending Appointments</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-check-circle fa-3x mb-2"></i>
-                    <h3>{{ accepted|length }}</h3>
-                    <p class="mb-0">Accepted Appointments</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-danger text-white">
-                <div class="card-body text-center">
-                    <i class="fas fa-times-circle fa-3x mb-2"></i>
-                    <h3>{{ rejected|length }}</h3>
-                    <p class="mb-0">Rejected Appointments</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pending Appointments -->
-    <div class="row mb-4">
+    <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <h5 class="mb-0"><i class="fas fa-clock"></i> Pending Appointments ({{ pending|length }})</h5>
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> All Appointments ({{ appointments|length }})</h5>
                 </div>
                 <div class="card-body">
-                    {% if pending %}
+                    {% if appointments %}
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Patient</th>
                                     <th>Date</th>
                                     <th>Time</th>
+                                    <th>Patient</th>
                                     <th>Reason</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for apt in pending %}
+                                {% for appointment in appointments %}
                                 <tr>
+                                    <td>{{ appointment.date }}</td>
+                                    <td>{{ appointment.time }}</td>
+                                    <td>{{ appointment.patient.username if appointment.patient else 'N/A' }}</td>
+                                    <td>{{ appointment.reason if appointment.reason else 'General Checkup' }}</td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if apt.patient and apt.patient.profile_picture %}
-                                                <img src="{{ url_for('static', filename='uploads/' + apt.patient.profile_picture) }}" 
-                                                     class="rounded-circle me-2" 
-                                                     style="width: 40px; height: 40px; object-fit: cover;">
-                                            {% else %}
-                                                <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
-                                            {% endif %}
-                                            <div>
-                                                <strong>{{ apt.patient.full_name if apt.patient else 'Unknown' }}</strong><br>
-                                                <small class="text-muted">{{ apt.patient.email if apt.patient else '' }}</small>
-                                            </div>
-                                        </div>
+                                        <span class="badge bg-{{ 'success' if appointment.status == 'confirmed' else 'warning' if appointment.status == 'pending' else 'danger' }}">
+                                            {{ appointment.status|title }}
+                                        </span>
                                     </td>
-                                    <td><strong>{{ apt.date }}</strong></td>
-                                    <td>{{ apt.time }}</td>
-                                    <td>{{ apt.reason[:50] }}...</td>
                                     <td>
-                                        <form method="POST" action="{{ url_for('doctor.accept_appointment', appointment_id=apt._id) }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-success btn-sm">
-                                                <i class="fas fa-check"></i> Accept
+                                        {% if appointment.status == 'pending' %}
+                                        <form method="POST" action="{{ url_for('doctor.confirm_appointment', appointment_id=appointment.id) }}" style="display: inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Confirm
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('doctor.reject_appointment', appointment_id=apt._id) }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-times"></i> Reject
+                                        <form method="POST" action="{{ url_for('doctor.cancel_appointment', appointment_id=appointment.id) }}" style="display: inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times"></i> Decline
                                             </button>
                                         </form>
+                                        {% else %}
+                                        <span class="text-muted">No actions</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -111,122 +69,9 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No pending appointments
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Accepted Appointments -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Accepted Appointments ({{ accepted|length }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if accepted %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Patient</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Reason</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for apt in accepted %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if apt.patient and apt.patient.profile_picture %}
-                                                <img src="{{ url_for('static', filename='uploads/' + apt.patient.profile_picture) }}" 
-                                                     class="rounded-circle me-2" 
-                                                     style="width: 40px; height: 40px; object-fit: cover;">
-                                            {% else %}
-                                                <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
-                                            {% endif %}
-                                            <div>
-                                                <strong>{{ apt.patient.full_name if apt.patient else 'Unknown' }}</strong><br>
-                                                <small class="text-muted">{{ apt.patient.email if apt.patient else '' }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><strong>{{ apt.date }}</strong></td>
-                                    <td>{{ apt.time }}</td>
-                                    <td>{{ apt.reason[:50] }}...</td>
-                                    <td><span class="badge bg-success">Accepted</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No accepted appointments
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rejected Appointments -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0"><i class="fas fa-times-circle"></i> Rejected Appointments ({{ rejected|length }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if rejected %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Patient</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Reason</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for apt in rejected %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if apt.patient and apt.patient.profile_picture %}
-                                                <img src="{{ url_for('static', filename='uploads/' + apt.patient.profile_picture) }}" 
-                                                     class="rounded-circle me-2" 
-                                                     style="width: 40px; height: 40px; object-fit: cover;">
-                                            {% else %}
-                                                <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
-                                            {% endif %}
-                                            <div>
-                                                <strong>{{ apt.patient.full_name if apt.patient else 'Unknown' }}</strong><br>
-                                                <small class="text-muted">{{ apt.patient.email if apt.patient else '' }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td><strong>{{ apt.date }}</strong></td>
-                                    <td>{{ apt.time }}</td>
-                                    <td>{{ apt.reason[:50] }}...</td>
-                                    <td><span class="badge bg-danger">Rejected</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No rejected appointments
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No appointments found</p>
                     </div>
                     {% endif %}
                 </div>
@@ -234,226 +79,4 @@
         </div>
     </div>
 </div>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
-
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required, current_user
-from functools import wraps
-from app.extensions import db
-from app.models import User, Role
-
-admin_bp = Blueprint('admin', __name__)
-
-# Admin required decorator
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role.name != 'admin':
-            flash('You need to be an admin to access this page.', 'danger')
-            return redirect(url_for('main.index'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-@admin_bp.route('/dashboard')
-@login_required
-@admin_required
-def dashboard():
-    total_users = User.query.count()
-    total_doctors = User.query.join(Role).filter(Role.name == 'doctor').count()
-    total_patients = User.query.join(Role).filter(Role.name == 'patient').count()
-    total_nurses = User.query.join(Role).filter(Role.name == 'nurse').count()
-    pending_approvals = User.query.filter_by(is_approved=False).count()
-    
-    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
-    
-    stats = {
-        'total_users': total_users,
-        'total_doctors': total_doctors,
-        'total_patients': total_patients,
-        'total_nurses': total_nurses,
-        'active_users': User.query.filter_by(is_active=True).count(),
-        'pending_approvals': pending_approvals
-    }
-    
-    return render_template('admin/dashboard.html', stats=stats, recent_users=recent_users)
-
-@admin_bp.route('/users')
-@login_required
-@admin_required
-def manage_users():
-    users = User.query.all()
-    return render_template('admin/users.html', users=users)
-
-@admin_bp.route('/doctors')
-@login_required
-@admin_required
-def manage_doctors():
-    doctors = User.query.join(Role).filter(Role.name == 'doctor').all()
-    return render_template('admin/doctors.html', doctors=doctors)
-
-@admin_bp.route('/nurses')
-@login_required
-@admin_required
-def manage_nurses():
-    nurses = User.query.join(Role).filter(Role.name == 'nurse').all()
-    return render_template('admin/nurses.html', nurses=nurses)
-
-@admin_bp.route('/patients')
-@login_required
-@admin_required
-def manage_patients():
-    patients = User.query.join(Role).filter(Role.name == 'patient').all()
-    
-    stats = {
-        'total_patients': len(patients),
-        'active_patients': len([p for p in patients if p.is_active]),
-        'pending_approvals': len([p for p in patients if not p.is_approved]),
-        'total_records': 0  # You can calculate this from your medical records
-    }
-    
-    return render_template('admin/patients.html', patients=patients, stats=stats, patient_data={})
-
-@admin_bp.route('/pending-approvals')
-@login_required
-@admin_required
-def pending_approvals():
-    pending_users = User.query.filter_by(is_approved=False).all()
-    return render_template('admin/pending_approvals.html', pending_users=pending_users)
-
-@admin_bp.route('/reports')
-@login_required
-@admin_required
-def reports():
-    return render_template('admin/reports.html')
-
-@admin_bp.route('/settings')
-@login_required
-@admin_required
-def settings():
-    return render_template('admin/settings.html')
-
-@admin_bp.route('/users/create', methods=['POST'])
-@login_required
-@admin_required
-def create_user():
-    try:
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        full_name = request.form.get('full_name')
-        phone = request.form.get('phone')
-        role_id = request.form.get('role_id')
-
-        # Validate required fields
-        if not all([username, email, password, role_id]):
-            flash('All required fields must be filled!', 'danger')
-            return redirect(url_for('admin.manage_users'))
-
-        # Check if username or email already exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists!', 'danger')
-            return redirect(url_for('admin.manage_users'))
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already exists!', 'danger')
-            return redirect(url_for('admin.manage_users'))
-
-        # Create new user
-        new_user = User(
-            username=username,
-            email=email,
-            full_name=full_name,
-            phone=phone,
-            role_id=role_id,
-            is_active=True,
-            is_approved=True
-        )
-        new_user.set_password(password)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash(f'User {username} created successfully!', 'success')
-        return redirect(url_for('admin.manage_users'))
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error creating user: {str(e)}', 'danger')
-        return redirect(url_for('admin.manage_users'))
-
-@admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
-@login_required
-@admin_required
-def edit_user(user_id):
-    try:
-        user = User.query.get_or_404(user_id)
-        
-        user.username = request.form.get('username')
-        user.email = request.form.get('email')
-        user.full_name = request.form.get('full_name')
-        user.phone = request.form.get('phone')
-        
-        password = request.form.get('password')
-        if password:
-            user.set_password(password)
-        
-        db.session.commit()
-        flash(f'User {user.username} updated successfully!', 'success')
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating user: {str(e)}', 'danger')
-    
-    return redirect(url_for('admin.manage_users'))
-
-@admin_bp.route('/users/<int:user_id>/toggle-status', methods=['POST'])
-@login_required
-@admin_required
-def toggle_user_status(user_id):
-    try:
-        user = User.query.get_or_404(user_id)
-        user.is_active = not user.is_active
-        db.session.commit()
-        
-        status = 'activated' if user.is_active else 'deactivated'
-        flash(f'User {user.username} has been {status}!', 'success')
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error updating user status: {str(e)}', 'danger')
-    
-    return redirect(url_for('admin.manage_users'))
-
-@admin_bp.route('/users/<int:user_id>/approve', methods=['POST'])
-@login_required
-@admin_required
-def approve_user(user_id):
-    try:
-        user = User.query.get_or_404(user_id)
-        user.is_approved = True
-        db.session.commit()
-        flash(f'User {user.username} has been approved!', 'success')
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error approving user: {str(e)}', 'danger')
-    
-    return redirect(url_for('admin.pending_approvals'))
-
-@admin_bp.route('/users/<int:user_id>/reject', methods=['POST'])
-@login_required
-@admin_required
-def reject_user(user_id):
-    try:
-        user = User.query.get_or_404(user_id)
-        db.session.delete(user)
-        db.session.commit()
-        flash(f'User {user.username} has been rejected and deleted!', 'warning')
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error rejecting user: {str(e)}', 'danger')
-    
-    return redirect(url_for('admin.pending_approvals'))

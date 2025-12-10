@@ -5,82 +5,68 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card shadow-sm" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                <div class="card-body d-flex justify-content-between align-items-center text-white">
-                    <div>
-                        <h2><i class="fas fa-calendar-alt"></i> My Appointments</h2>
-                        <p class="mb-0">View and manage your appointment history</p>
-                    </div>
-                    <div>
-                        <a href="{{ url_for('patient.book_appointment') }}" class="btn btn-light btn-lg me-2">
-                            <i class="fas fa-calendar-plus"></i> Book New
-                        </a>
-                        <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </a>
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #8ce99a 0%, #b2f2bb 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-calendar-check"></i> My Appointments</h2>
+                            <p class="mb-0">Book and manage your appointments</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#bookAppointmentModal">
+                                <i class="fas fa-plus"></i> Book Appointment
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Pending Appointments -->
-    <div class="row mb-4">
+    <!-- Appointments List -->
+    <div class="row">
         <div class="col-md-12">
-            <div class="card shadow-sm" style="border-left: 4px solid #f093fb;">
-                <div class="card-header" style="background-color: #f8f9fa;">
-                    <h5 class="mb-0" style="color: #f093fb;">
-                        <i class="fas fa-clock"></i> Pending Appointments ({{ pending|length }})
-                    </h5>
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> All Appointments ({{ appointments|length }})</h5>
                 </div>
                 <div class="card-body">
-                    {% if pending %}
+                    {% if appointments %}
                     <div class="table-responsive">
                         <table class="table table-hover">
-                            <thead style="background-color: #f8f9fa;">
+                            <thead>
                                 <tr>
-                                    <th style="color: #667eea;">Doctor</th>
-                                    <th style="color: #667eea;">Date & Time</th>
-                                    <th style="color: #667eea;">Reason</th>
-                                    <th style="color: #667eea;">Status</th>
-                                    <th style="color: #667eea;">Actions</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Doctor</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for apt in pending %}
+                                {% for appointment in appointments %}
                                 <tr>
+                                    <td>{{ appointment.date }}</td>
+                                    <td>{{ appointment.time }}</td>
+                                    <td>Dr. {{ appointment.doctor.username if appointment.doctor else 'N/A' }}</td>
+                                    <td>{{ appointment.reason if appointment.reason else 'General Checkup' }}</td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if apt.doctor and apt.doctor.profile_picture %}
-                                                <img src="{{ url_for('static', filename='uploads/' + apt.doctor.profile_picture) }}" 
-                                                     class="rounded-circle me-2" 
-                                                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #667eea;">
-                                            {% else %}
-                                                <i class="fas fa-user-md fa-2x me-2" style="color: #667eea;"></i>
-                                            {% endif %}
-                                            <div>
-                                                <strong>Dr. {{ apt.doctor.full_name if apt.doctor else 'Unknown' }}</strong><br>
-                                                <small class="text-muted">{{ apt.doctor.email if apt.doctor else '' }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <i class="fas fa-calendar" style="color: #667eea;"></i> {{ apt.date }}<br>
-                                        <i class="fas fa-clock" style="color: #667eea;"></i> {{ apt.time }}
-                                    </td>
-                                    <td>{{ apt.reason[:60] }}{% if apt.reason|length > 60 %}...{% endif %}</td>
-                                    <td>
-                                        <span class="badge" style="background-color: #f093fb; color: white; font-size: 14px;">
-                                            <i class="fas fa-clock"></i> Pending
+                                        <span class="badge bg-{{ 'success' if appointment.status == 'confirmed' else 'warning' if appointment.status == 'pending' else 'danger' }}">
+                                            {{ appointment.status|title }}
                                         </span>
                                     </td>
                                     <td>
-                                        <form method="POST" action="{{ url_for('patient.cancel_appointment', appointment_id=apt._id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
+                                        {% if appointment.status in ['pending', 'confirmed'] %}
+                                        <form method="POST" action="{{ url_for('patient.cancel_appointment', appointment_id=appointment.id) }}" style="display: inline;">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button type="submit" class="btn btn-sm" style="background-color: #f093fb; color: white; border: none;">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this appointment?')">
                                                 <i class="fas fa-times"></i> Cancel
                                             </button>
                                         </form>
+                                        {% else %}
+                                        <span class="text-muted">No actions</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -88,125 +74,12 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="text-center text-muted py-4">
-                        <i class="fas fa-calendar-times fa-3x mb-3" style="color: #f093fb;"></i>
-                        <p>No pending appointments</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Accepted Appointments -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm" style="border-left: 4px solid #43e97b;">
-                <div class="card-header" style="background-color: #f8f9fa;">
-                    <h5 class="mb-0" style="color: #43e97b;">
-                        <i class="fas fa-check-circle"></i> Accepted Appointments ({{ accepted|length }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if accepted %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead style="background-color: #f8f9fa;">
-                                <tr>
-                                    <th style="color: #667eea;">Doctor</th>
-                                    <th style="color: #667eea;">Date & Time</th>
-                                    <th style="color: #667eea;">Reason</th>
-                                    <th style="color: #667eea;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for apt in accepted %}
-                                <tr style="background-color: #f0fdf4;">
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if apt.doctor and apt.doctor.profile_picture %}
-                                                <img src="{{ url_for('static', filename='uploads/' + apt.doctor.profile_picture) }}" 
-                                                     class="rounded-circle me-2" 
-                                                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #43e97b;">
-                                            {% else %}
-                                                <i class="fas fa-user-md fa-2x me-2" style="color: #43e97b;"></i>
-                                            {% endif %}
-                                            <div>
-                                                <strong>Dr. {{ apt.doctor.full_name if apt.doctor else 'Unknown' }}</strong><br>
-                                                <small class="text-muted">{{ apt.doctor.email if apt.doctor else '' }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <i class="fas fa-calendar" style="color: #43e97b;"></i> {{ apt.date }}<br>
-                                        <i class="fas fa-clock" style="color: #43e97b;"></i> {{ apt.time }}
-                                    </td>
-                                    <td>{{ apt.reason[:60] }}{% if apt.reason|length > 60 %}...{% endif %}</td>
-                                    <td>
-                                        <span class="badge" style="background-color: #43e97b; color: white; font-size: 14px;">
-                                            <i class="fas fa-check-circle"></i> Accepted
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center text-muted py-4">
-                        <i class="fas fa-calendar-check fa-3x mb-3" style="color: #43e97b;"></i>
-                        <p>No accepted appointments</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rejected Appointments -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm" style="border-left: 4px solid #6c757d;">
-                <div class="card-header" style="background-color: #f8f9fa;">
-                    <h5 class="mb-0" style="color: #6c757d;">
-                        <i class="fas fa-times-circle"></i> Rejected Appointments ({{ rejected|length }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if rejected %}
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm">
-                            <thead style="background-color: #f8f9fa;">
-                                <tr>
-                                    <th style="color: #6c757d;">Doctor</th>
-                                    <th style="color: #6c757d;">Date & Time</th>
-                                    <th style="color: #6c757d;">Reason</th>
-                                    <th style="color: #6c757d;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for apt in rejected %}
-                                <tr class="text-muted">
-                                    <td>
-                                        <small>Dr. {{ apt.doctor.full_name if apt.doctor else 'Unknown' }}</small>
-                                    </td>
-                                    <td>
-                                        <small>{{ apt.date }} at {{ apt.time }}</small>
-                                    </td>
-                                    <td><small>{{ apt.reason[:40] }}...</small></td>
-                                    <td>
-                                        <span class="badge bg-secondary">
-                                            <i class="fas fa-times-circle"></i> Rejected
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center text-muted py-4">
-                        <p>No rejected appointments</p>
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                        <p class="text-muted mb-3">No appointments yet</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookAppointmentModal">
+                            <i class="fas fa-plus"></i> Book Your First Appointment
+                        </button>
                     </div>
                     {% endif %}
                 </div>
@@ -215,23 +88,80 @@
     </div>
 </div>
 
-<style>
-    .card {
-        border: none;
-        border-radius: 10px;
-    }
-    
-    .table td, .table th {
-        vertical-align: middle;
-        padding: 12px;
-    }
-    
-    .btn:hover {
-        opacity: 0.9;
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-</style>
+<!-- Book Appointment Modal -->
+<div class="modal fade" id="bookAppointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #8ce99a 0%, #b2f2bb 100%); color: white;">
+                <h5 class="modal-title"><i class="fas fa-calendar-plus"></i> Book Appointment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('patient.book_appointment') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-user-md"></i> Select Doctor *</label>
+                        <select name="doctor_id" class="form-select" required>
+                            <option value="">Choose a doctor...</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">Dr. {{ doctor.full_name or doctor.username }} - {{ doctor.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Date *</label>
+                        <input type="date" name="date" class="form-control" required>
+                        <small class="text-muted">Select a future date for your appointment</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-clock"></i> Time *</label>
+                        <select name="time" class="form-select" required>
+                            <option value="">Choose a time...</option>
+                            <option value="09:00">09:00 AM</option>
+                            <option value="09:30">09:30 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="10:30">10:30 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="11:30">11:30 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="14:00">02:00 PM</option>
+                            <option value="14:30">02:30 PM</option>
+                            <option value="15:00">03:00 PM</option>
+                            <option value="15:30">03:30 PM</option>
+                            <option value="16:00">04:00 PM</option>
+                            <option value="16:30">04:30 PM</option>
+                            <option value="17:00">05:00 PM</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-notes-medical"></i> Reason for Visit</label>
+                        <textarea name="reason" class="form-control" rows="3" placeholder="Brief description of your concern..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #8ce99a 0%, #b2f2bb 100%); color: white; border: none;">
+                        <i class="fas fa-check"></i> Book Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script>
+    // Set minimum date to tomorrow
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.querySelector('input[name="date"]');
+        if (dateInput) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const minDate = tomorrow.toISOString().split('T')[0];
+            dateInput.setAttribute('min', minDate);
+        }
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}My Predictions{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #ffa8d5 0%, #ffb3d9 100%);">
+                <div class="card-body text-white">
+                    <h2><i class="fas fa-brain"></i> My Stroke Risk Predictions</h2>
+                    <p class="mb-0">View your stroke risk assessment history</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Prediction History ({{ predictions|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if predictions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Risk Level</th>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                    <th>BMI</th>
+                                    <th>Glucose Level</th>
+                                    <th>Hypertension</th>
+                                    <th>Heart Disease</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in predictions %}
+                                <tr>
+                                    <td>{{ pred.created_at.strftime('%Y-%m-%d %H:%M') if pred.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ '#ff6b6b' if pred.prediction == 1 else '#51cf66' }}; font-size: 0.9rem;">
+                                            {{ 'High Risk' if pred.prediction == 1 else 'Low Risk' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ pred.age }}</td>
+                                    <td>{{ pred.gender }}</td>
+                                    <td>{{ pred.bmi }}</td>
+                                    <td>{{ pred.avg_glucose_level }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if pred.hypertension == 1 else 'success' }}">
+                                            {{ 'Yes' if pred.hypertension == 1 else 'No' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if pred.heart_disease == 1 else 'success' }}">
+                                            {{ 'Yes' if pred.heart_disease == 1 else 'No' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-heartbeat fa-4x text-muted mb-3"></i>
+                        <p class="text-muted mb-3">No risk assessments yet</p>
+                        <p class="text-muted">Take your first stroke risk assessment to see your results here</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,21 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Patients - Nurse{% endblock %}
+{% block title %}Nurse Patients{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body d-flex justify-content-between align-items-center text-white">
-                    <div>
-                        <h2><i class="fas fa-users"></i> Patients List (Read-Only)</h2>
-                        <p class="mb-0">View patient information and update vital signs</p>
-                    </div>
-                    <div>
-                        <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-light btn-lg">
-                            <i class="fas fa-arrow-left"></i> Back to Dashboard
-                        </a>
-                    </div>
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #ffa8d5 0%, #ffb3d9 100%);">
+                <div class="card-body text-white">
+                    <h2><i class="fas fa-users"></i> Patient Management</h2>
+                    <p class="mb-0">View and manage all patients</p>
                 </div>
             </div>
         </div>
@@ -23,48 +15,30 @@
 
     <!-- Statistics -->
     <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card h-100 shadow-sm" style="border-left: 4px solid #667eea;">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #ffa8d5;">
                 <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x mb-3" style="color: #667eea;"></i>
-                    <h3 class="mb-1" style="color: #667eea;">{{ stats.total_patients }}</h3>
-                    <p class="text-muted mb-0">Total Patients Under Care</p>
+                    <i class="fas fa-users fa-3x mb-3" style="color: #ffa8d5;"></i>
+                    <h3 class="mb-1" style="color: #ffa8d5;">{{ stats.total_patients }}</h3>
+                    <p class="text-muted mb-0">Total Patients</p>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Search -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('nurse.patients') }}" class="row g-3">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <span class="input-group-text" style="background-color: #667eea; color: white; border-color: #667eea;">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text" 
-                                       class="form-control" 
-                                       name="search" 
-                                       placeholder="Search by name or email..." 
-                                       value="{{ search_query }}"
-                                       style="border-color: #667eea;">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <select name="sort" class="form-select" style="border-color: #667eea;">
-                                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort by Name</option>
-                                <option value="age" {% if sort_by == 'age' %}selected{% endif %}>Sort by Age</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                                <i class="fas fa-filter"></i> Apply
-                            </button>
-                        </div>
-                    </form>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #8ce99a;">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-3x mb-3" style="color: #8ce99a;"></i>
+                    <h3 class="mb-1" style="color: #8ce99a;">{{ stats.active_patients }}</h3>
+                    <p class="text-muted mb-0">Active Patients</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #91d5ff;">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-plus fa-3x mb-3" style="color: #91d5ff;"></i>
+                    <h3 class="mb-1" style="color: #91d5ff;">{{ stats.recent_patients }}</h3>
+                    <p class="text-muted mb-0">Recent</p>
                 </div>
             </div>
         </div>
@@ -73,90 +47,34 @@
     <!-- Patients Table -->
     <div class="row">
         <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                    <h5 class="mb-0"><i class="fas fa-list"></i> All Patients</h5>
-                    <span class="badge bg-light text-dark">{{ patients|length }} patients</span>
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> All Patients ({{ patients|length }})</h5>
                 </div>
                 <div class="card-body">
                     {% if patients %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> You have read-only access. You can view patient information and update vital signs only.
-                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
-                            <thead style="background-color: #f8f9fa;">
+                            <thead>
                                 <tr>
-                                    <th style="color: #667eea;">Patient</th>
-                                    <th style="color: #667eea;">Age/Gender</th>
-                                    <th style="color: #667eea;">Contact</th>
-                                    <th style="color: #667eea;">Blood Pressure</th>
-                                    <th style="color: #667eea;">Assigned Doctor</th>
-                                    <th style="color: #667eea;">Actions</th>
+                                    <th>Patient Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Registered</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for patient in patients %}
-                                <tr style="transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor=''">
+                                <tr>
+                                    <td><strong>{{ patient.full_name or patient.username }}</strong></td>
+                                    <td>{{ patient.email }}</td>
+                                    <td>{{ patient.phone or 'N/A' }}</td>
+                                    <td>{{ patient.created_at.strftime('%Y-%m-%d') if patient.created_at else 'N/A' }}</td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if patient.profile_picture %}
-                                                <img src="{{ url_for('static', filename='uploads/' + patient.profile_picture) }}" 
-                                                     alt="Profile" 
-                                                     class="rounded-circle me-2" 
-                                                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #667eea;">
-                                            {% else %}
-                                                <i class="fas fa-user-circle fa-2x me-2" style="color: #667eea;"></i>
-                                            {% endif %}
-                                            <div>
-                                                <strong style="color: #2d3748;">{{ patient.full_name }}</strong><br>
-                                                <small class="text-muted">ID: {{ patient.username }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <strong>{{ patient.age }}</strong> years<br>
-                                        <small class="text-muted">
-                                            <i class="fas fa-{{ 'mars' if patient.gender == 'Male' else 'venus' }}" style="color: #667eea;"></i>
-                                            {{ patient.gender }}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <small>
-                                            <i class="fas fa-envelope" style="color: #667eea;"></i> {{ patient.email }}<br>
-                                            <i class="fas fa-phone" style="color: #667eea;"></i> {{ patient.phone or 'N/A' }}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <strong style="color: #f093fb;">{{ patient.blood_pressure }}</strong><br>
-                                        {% if patient.last_vitals %}
-                                            <small class="text-muted">
-                                                <i class="fas fa-heartbeat"></i> HR: {{ patient.last_vitals.heart_rate }} bpm
-                                            </small>
-                                        {% else %}
-                                            <small class="text-muted">No recent vitals</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge" style="background-color: #4facfe; color: white;">
-                                            <i class="fas fa-user-md"></i> Dr. {{ patient.doctor_name }}
+                                        <span class="badge bg-{{ 'success' if patient.is_active else 'danger' }}">
+                                            {{ 'Active' if patient.is_active else 'Inactive' }}
                                         </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ url_for('nurse.view_patient', patient_id=patient.id) }}" 
-                                               class="btn btn-sm" 
-                                               style="background-color: #4facfe; color: white; border: none;"
-                                               title="View Details">
-                                                <i class="fas fa-eye"></i> View
-                                            </a>
-                                            <a href="{{ url_for('nurse.update_vitals', patient_id=patient.id) }}" 
-                                               class="btn btn-sm"
-                                               style="background-color: #43e97b; color: white; border: none;"
-                                               title="Update Vitals">
-                                                <i class="fas fa-heartbeat"></i> Vitals
-                                            </a>
-                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -164,16 +82,9 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="alert text-center" style="background-color: #f8f9fa; border: 2px dashed #667eea; color: #2d3748;">
-                        <i class="fas fa-info-circle fa-3x mb-3" style="color: #667eea;"></i>
-                        <h5>No patients found</h5>
-                        <p class="mb-0">
-                            {% if search_query %}
-                                No results for "{{ search_query }}". Try a different search term.
-                            {% else %}
-                                No patients are currently in the system.
-                            {% endif %}
-                        </p>
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-injured fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No patients found</p>
                     </div>
                     {% endif %}
                 </div>
@@ -181,24 +92,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .btn-group .btn:hover {
-        opacity: 0.8;
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-    
-    .card {
-        border: none;
-        border-radius: 10px;
-    }
-    
-    .table td, .table th {
-        vertical-align: middle;
-        padding: 15px;
-    }
-</style>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

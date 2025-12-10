@@ -4,8 +4,8 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-12">
-            <a class="nav-link" href="{{ url_for('admin.patient_records') }}">
-                <i class="fas fa-file-medical"></i> Patient Records
+            <a class="nav-link" href="{{ url_for('admin.view_predictions') }}">
+                <i class="fas fa-file-medical"></i> Back to Predictions
             </a>
             
             <!-- Patient Info Card -->
@@ -16,16 +16,21 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Name:</strong> {{ patient.user.username if patient.user else 'N/A' }}</p>
-                            <p><strong>Email:</strong> {{ patient.user.email if patient.user else 'N/A' }}</p>
-                            <p><strong>Age:</strong> {{ patient.age }}</p>
-                            <p><strong>Gender:</strong> {{ patient.gender }}</p>
+                            <p><strong>Name:</strong> {{ patient.username }}</p>
+                            <p><strong>Email:</strong> {{ patient.email }}</p>
+                            <p><strong>Role:</strong> {{ patient.role.name|title }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if patient.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Hypertension:</strong> {{ 'Yes' if patient.hypertension == 1 else 'No' }}</p>
-                            <p><strong>Heart Disease:</strong> {{ 'Yes' if patient.heart_disease == 1 else 'No' }}</p>
-                            <p><strong>BMI:</strong> {{ patient.bmi }}</p>
-                            <p><strong>Avg Glucose Level:</strong> {{ patient.avg_glucose_level }}</p>
+                            <p><strong>Created:</strong> {{ patient.created_at.strftime('%Y-%m-%d %H:%M') if patient.created_at else 'N/A' }}</p>
+                            <p><strong>Total Predictions:</strong> {{ predictions|length }}</p>
+                            <p><strong>Total Appointments:</strong> {{ appointments|length }}</p>
                         </div>
                     </div>
                 </div>
@@ -59,13 +64,9 @@
                                             <span class="badge bg-success">Low Risk</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ (pred.probability * 100)|round(2) if pred.probability else 'N/A' }}%</td>
+                                    <td>{{ (pred.risk_score)|round(2) if pred.risk_score else 'N/A' }}%</td>
                                     <td>
-                                        <form method="POST" action="{{ url_for('admin.delete_prediction', prediction_id=pred._id) }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this prediction?')">
-                                                <i class="fas fa-trash"></i> Delete
-                                            </button>
-                                        </form>
+                                        <span class="text-muted">Prediction ID: {{ pred.id }}</span>
                                     </td>
                                 </tr>
                                 {% endfor %}

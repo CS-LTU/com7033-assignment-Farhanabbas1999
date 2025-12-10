@@ -5,7 +5,7 @@
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #a8c0ff 0%, #c2e9fb 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -15,9 +15,9 @@
                             <p class="mb-0"><i class="fas fa-envelope"></i> {{ current_user.email }}</p>
                         </div>
                         <div>
-                            <a href="{{ url_for('main.profile') }}" class="btn btn-light btn-lg">
-                                <i class="fas fa-user"></i> View Profile
-                            </a>
+                            <span class="badge bg-light text-dark p-3" style="font-size: 1rem;">
+                                <i class="fas fa-user-circle"></i> {{ current_user.role.name|title }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -28,38 +28,38 @@
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card h-100 shadow-sm" style="border-left: 4px solid #667eea;">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #91d5ff;">
                 <div class="card-body text-center">
-                    <i class="fas fa-user-injured fa-3x mb-3" style="color: #667eea;"></i>
-                    <h3 class="mb-1" style="color: #667eea;">{{ stats.total_patients }}</h3>
+                    <i class="fas fa-user-injured fa-3x mb-3" style="color: #91d5ff;"></i>
+                    <h3 class="mb-1" style="color: #91d5ff;">{{ stats.total_patients }}</h3>
                     <p class="text-muted mb-0">Total Patients</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card h-100 shadow-sm" style="border-left: 4px solid #f093fb;">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #ffa8d5;">
                 <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x mb-3" style="color: #f093fb;"></i>
-                    <h3 class="mb-1" style="color: #f093fb;">{{ stats.pending_appointments }}</h3>
+                    <i class="fas fa-clock fa-3x mb-3" style="color: #ffa8d5;"></i>
+                    <h3 class="mb-1" style="color: #ffa8d5;">{{ stats.pending_appointments }}</h3>
                     <p class="text-muted mb-0">Pending Appointments</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card h-100 shadow-sm" style="border-left: 4px solid #43e97b;">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #8ce99a;">
                 <div class="card-body text-center">
-                    <i class="fas fa-calendar-check fa-3x mb-3" style="color: #43e97b;"></i>
-                    <h3 class="mb-1" style="color: #43e97b;">{{ stats.today_appointments }}</h3>
-                    <p class="text-muted mb-0">Today's Appointments</p>
+                    <i class="fas fa-calendar-check fa-3x mb-3" style="color: #8ce99a;"></i>
+                    <h3 class="mb-1" style="color: #8ce99a;">{{ stats.total_appointments }}</h3>
+                    <p class="text-muted mb-0">Total Appointments</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card h-100 shadow-sm" style="border-left: 4px solid #4facfe;">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #74c0fc;">
                 <div class="card-body text-center">
-                    <i class="fas fa-heartbeat fa-3x mb-3" style="color: #4facfe;"></i>
-                    <h3 class="mb-1" style="color: #4facfe;">{{ stats.total_predictions }}</h3>
-                    <p class="text-muted mb-0">Total Predictions</p>
+                    <i class="fas fa-heartbeat fa-3x mb-3" style="color: #74c0fc;"></i>
+                    <h3 class="mb-1" style="color: #74c0fc;">{{ stats.high_risk_patients }}</h3>
+                    <p class="text-muted mb-0">High Risk Patients</p>
                 </div>
             </div>
         </div>
@@ -68,57 +68,61 @@
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <h4 class="mb-3" style="color: #667eea;"><i class="fas fa-bolt"></i> Quick Actions</h4>
+            <h4 class="mb-3" style="color: #91d5ff;"><i class="fas fa-bolt"></i> Quick Actions</h4>
         </div>
         
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="card h-100 shadow-sm hover-card">
                 <div class="card-body text-center">
-                    <i class="fas fa-calendar-alt fa-4x mb-3" style="color: #667eea;"></i>
-                    <h5 class="card-title">Appointments</h5>
-                    <p class="card-text">View and manage patient appointments</p>
-                    <a href="{{ url_for('doctor.appointments') }}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                        <i class="fas fa-list"></i> View All
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <div class="card h-100 shadow-sm hover-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-4x mb-3" style="color: #43e97b;"></i>
+                    <i class="fas fa-users fa-4x mb-3" style="color: #8ce99a;"></i>
                     <h5 class="card-title">My Patients</h5>
                     <p class="card-text">View all registered patients</p>
-                    <a href="{{ url_for('doctor.patients') }}" class="btn" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">
+                    <a href="{{ url_for('doctor.patients') }}" class="btn" style="background: linear-gradient(135deg, #8ce99a 0%, #b2f2bb 100%); color: white; border: none;">
                         <i class="fas fa-user-injured"></i> View Patients
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="card h-100 shadow-sm hover-card">
                 <div class="card-body text-center">
-                    <i class="fas fa-chart-line fa-4x mb-3" style="color: #f093fb;"></i>
-                    <h5 class="card-title">Analytics</h5>
-                    <p class="card-text">View stroke prediction analytics</p>
-                    <a href="{{ url_for('doctor.analytics') }}" class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
-                        <i class="fas fa-chart-bar"></i> View Analytics
+                    <i class="fas fa-calendar-alt fa-4x mb-3" style="color: #a8c0ff;"></i>
+                    <h5 class="card-title">Appointments</h5>
+                    <p class="card-text">View and manage appointments</p>
+                    <a href="{{ url_for('doctor.appointments') }}" class="btn" style="background: linear-gradient(135deg, #a8c0ff 0%, #c2e9fb 100%); color: white; border: none;">
+                        <i class="fas fa-list"></i> View All
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="card h-100 shadow-sm hover-card">
                 <div class="card-body text-center">
-                    <i class="fas fa-heartbeat fa-4x mb-3" style="color: #4facfe;"></i>
-                    <h5 class="card-title">Predictions</h5>
-                    <p class="card-text">View stroke risk predictions</p>
-                    <a href="{{ url_for('main.stroke_prediction') }}" class="btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">
-                        <i class="fas fa-brain"></i> Predict
+                    <i class="fas fa-chart-bar fa-4x mb-3" style="color: #ffa8d5;"></i>
+                    <h5 class="card-title">Analytics</h5>
+                    <p class="card-text">View statistics and reports</p>
+                    <a href="{{ url_for('doctor.analytics') }}" class="btn" style="background: linear-gradient(135deg, #ffa8d5 0%, #ffb3d9 100%); color: white; border: none;">
+                        <i class="fas fa-chart-line"></i> View Analytics
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #a8c0ff 0%, #c2e9fb 100%);">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">Your recent activities will appear here</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -133,7 +137,7 @@
     
     .hover-card:hover {
         transform: translateY(-10px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
     }
     
     .card {

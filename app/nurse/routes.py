@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from functools import wraps
-from app.models import User, Role
-from app import db, mongo
+from app.models import User, Role, Appointment, Prediction
+from app import db
+from sqlalchemy import desc
+from datetime import datetime
 
 nurse_bp = Blueprint('nurse', __name__, url_prefix='/nurse')
 
@@ -21,56 +23,31 @@ def nurse_required(f):
 def dashboard():
     """Nurse dashboard"""
     try:
-        # Get statistics
         patient_role = Role.query.filter_by(name='patient').first()
         total_patients = User.query.filter_by(role_id=patient_role.id, is_active=True).count() if patient_role else 0
         
         stats = {
             'total_patients': total_patients,
-            'total_appointments': 0,
-            'pending_tasks': 0,
+            'total_appointments': Appointment.query.count(),
+            'pending_tasks': Appointment.query.filter_by(status='pending').count(),
             'completed_today': 0
         }
         
-        if mongo.db is not None:
-            try:
-                stats['total_appointments'] = mongo.db.appointments.count_documents({'status': {'$ne': 'cancelled'}})
-                stats['pending_tasks'] = mongo.db.appointments.count_documents({'status': 'pending'})
-                today_str = mongo.db.appointments.count_documents({'date': {'$regex': '^2025-12-10'}})
-                stats['completed_today'] = today_str
-            except Exception as e:
-                print(f"MongoDB error: {e}")
-        
         # Get recent patients
-        recent_patients = []
-        if patient_role:
-            patients = User.query.filter_by(role_id=patient_role.id, is_active=True).order_by(User.created_at.desc()).limit(5).all()
-            recent_patients = patients
+        recent_patients = User.query.filter_by(role_id=patient_role.id, is_active=True).order_by(desc(User.created_at)).limit(5).all() if patient_role else []
         
         # Get today's appointments
-        today_appointments = []
-        if mongo.db is not None:
-            try:
-                appointments = list(mongo.db.appointments.find().sort('date', 1).limit(5))
-                for apt in appointments:
-                    if 'patient_id' in apt:
-                        patient = User.query.get(apt['patient_id'])
-                        apt['patient'] = patient
-                    if 'doctor_id' in apt:
-                        doctor = User.query.get(apt['doctor_id'])
-                        apt['doctor'] = doctor
-                    today_appointments.append(apt)
-            except Exception as e:
-                print(f"MongoDB error: {e}")
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_appointments = Appointment.query.filter_by(date=today).limit(5).all()
         
     except Exception as e:
-        print(f"Error loading dashboard: {str(e)}")
+        print(f"Error loading dashboard: {e}")
         stats = {'total_patients': 0, 'total_appointments': 0, 'pending_tasks': 0, 'completed_today': 0}
         recent_patients = []
         today_appointments = []
     
     return render_template('nurse/dashboard.html', 
-                         stats=stats, 
+                         stats=stats,
                          recent_patients=recent_patients,
                          today_appointments=today_appointments)
 
@@ -79,32 +56,56 @@ def dashboard():
 @nurse_required
 def patients():
     """View all patients"""
-    patient_role = Role.query.filter_by(name='patient').first()
-    patients = User.query.filter_by(role_id=patient_role.id, is_active=True).all() if patient_role else []
+    try:
+        patient_role = Role.query.filter_by(name='patient').first()
+        patients = User.query.filter_by(role_id=patient_role.id, is_active=True).all() if patient_role else []
+        
+        stats = {
+            'total_patients': len(patients),
+            'active_patients': len([p for p in patients if p.is_active]),
+            'recent_patients': len([p for p in patients if p.created_at])
+        }
+    except Exception as e:
+        print(f"Error loading patients: {e}")
+        patients = []
+        stats = {'total_patients': 0, 'active_patients': 0, 'recent_patients': 0}
     
-    return render_template('nurse/patients.html', patients=patients)
+    return render_template('nurse/patients.html', patients=patients, stats=stats)
 
 @nurse_bp.route('/appointments')
 @login_required
 @nurse_required
 def appointments():
     """View all appointments"""
-    appointments = []
-    
-    if mongo.db is not None:
-        try:
-            apts = list(mongo.db.appointments.find().sort('date', -1))
-            
-            for apt in apts:
-                if 'patient_id' in apt:
-                    patient = User.query.get(apt['patient_id'])
-                    apt['patient'] = patient
-                if 'doctor_id' in apt:
-                    doctor = User.query.get(apt['doctor_id'])
-                    apt['doctor'] = doctor
-                apt['_id'] = str(apt['_id'])
-                appointments.append(apt)
-        except Exception as e:
-            print(f"MongoDB error: {e}")
+    appointments = Appointment.query.order_by(desc(Appointment.date)).all()
     
     return render_template('nurse/appointments.html', appointments=appointments)
+
+@nurse_bp.route('/patients/<int:patient_id>')
+@login_required
+@nurse_required
+def view_patient(patient_id):
+    """View patient details"""
+    patient = User.query.get_or_404(patient_id)
+    
+    # Get patient's predictions and appointments
+    predictions = Prediction.query.filter_by(user_id=patient_id).order_by(desc(Prediction.created_at)).all()
+    appointments = Appointment.query.filter_by(patient_id=patient_id).order_by(desc(Appointment.date)).all()
+    
+    return render_template('nurse/patient_detail.html',
+                         user=patient,
+                         predictions=predictions,
+                         appointments=appointments)
+
+@nurse_bp.route('/patients/<int:patient_id>/vitals', methods=['GET', 'POST'])
+@login_required
+@nurse_required
+def update_vitals(patient_id):
+    """Update patient vitals"""
+    patient = User.query.get_or_404(patient_id)
+    
+    if request.method == 'POST':
+        flash('Vitals recording functionality to be implemented', 'info')
+        return redirect(url_for('nurse.view_patient', patient_id=patient_id))
+    
+    return render_template('nurse/update_vitals.html', user=patient)
