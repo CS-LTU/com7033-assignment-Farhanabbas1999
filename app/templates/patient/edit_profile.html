@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm" style="border: none; border-radius: 10px;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Profile</h4>
+                    <a href="{{ url_for('patient.view_profile') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> You can only update basic information. Medical fields must be updated by your healthcare provider.
+                    </div>
+
+                    <form method="POST" action="{{ url_for('patient.edit_profile') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <h5 class="mb-3" style="color: #667eea;"><i class="fas fa-user"></i> Basic Information</h5>
+                        
+                        <!-- Full Name -->
+                        <div class="mb-4">
+                            <label for="full_name" class="form-label">
+                                <i class="fas fa-user" style="color: #667eea;"></i> Full Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="full_name" 
+                                   name="full_name" 
+                                   value="{{ user.full_name or user.username }}" 
+                                   required 
+                                   style="border-color: #667eea;">
+                        </div>
+
+                        <!-- Email (Read-Only) -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope" style="color: #667eea;"></i> Email Address
+                            </label>
+                            <input type="email" 
+                                   class="form-control form-control-lg" 
+                                   id="email" 
+                                   value="{{ user.email }}" 
+                                   readonly 
+                                   style="border-color: #667eea; background-color: #f8f9fa;">
+                            <small class="text-muted">Email cannot be changed</small>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-4">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone" style="color: #667eea;"></i> Phone Number
+                            </label>
+                            <input type="tel" 
+                                   class="form-control form-control-lg" 
+                                   id="phone" 
+                                   name="phone" 
+                                   value="{{ user.phone or '' }}" 
+                                   placeholder="+1 (555) 123-4567"
+                                   style="border-color: #667eea;">
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-4">
+                            <label for="address" class="form-label">
+                                <i class="fas fa-map-marker-alt" style="color: #667eea;"></i> Address
+                            </label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="address" 
+                                      name="address" 
+                                      rows="3" 
+                                      placeholder="Enter your full address..."
+                                      style="border-color: #667eea;">{{ patient_data.address if patient_data else '' }}</textarea>
+                        </div>
+
+                        <hr style="border-color: #667eea;">
+
+                        <!-- Medical Info (Read-Only) -->
+                        <h5 class="mb-3" style="color: #f093fb;"><i class="fas fa-lock"></i> Medical Information (Read-Only)</h5>
+                        
+                        <div class="alert" style="background-color: #fff3cd; border-left: 4px solid #f093fb;">
+                            <i class="fas fa-exclamation-triangle" style="color: #f093fb;"></i> 
+                            The following fields can only be updated by your doctor or nurse
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Age</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       value="{{ patient_data.age if patient_data else 'N/A' }}" 
+                                       readonly 
+                                       style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Gender</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       value="{{ patient_data.gender if patient_data else 'N/A' }}" 
+                                       readonly 
+                                       style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">BMI</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       value="{{ patient_data.bmi if patient_data else 'N/A' }}" 
+                                       readonly 
+                                       style="background-color: #f8f9fa;">
+                            </div>
+                        </div>
+
+                        <hr style="border-color: #667eea;">
+
+                        <!-- Submit Buttons -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; min-width: 200px;">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{{ url_for('patient.view_profile') }}" 
+                               class="btn btn-lg" 
+                               style="background-color: #6c757d; color: white; border: none; min-width: 200px;">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

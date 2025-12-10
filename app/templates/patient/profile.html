@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm" style="border: none; border-radius: 10px;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h4 class="mb-0"><i class="fas fa-user"></i> My Profile</h4>
+                    <div>
+                        <a href="{{ url_for('patient.edit_profile') }}" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                        <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Profile Picture & Basic Info -->
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                {% if user.profile_picture %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" 
+                                         alt="Profile" 
+                                         class="rounded-circle mb-3" 
+                                         style="width: 200px; height: 200px; object-fit: cover; border: 5px solid #667eea;">
+                                {% else %}
+                                    <i class="fas fa-user-circle fa-10x mb-3" style="color: #667eea;"></i>
+                                {% endif %}
+                                <h3>{{ user.full_name or user.username }}</h3>
+                                <p class="text-muted">Patient</p>
+                            </div>
+                            
+                            <div class="card" style="background-color: #f8f9fa; border-left: 4px solid #667eea;">
+                                <div class="card-body">
+                                    <h6 style="color: #667eea;"><i class="fas fa-info-circle"></i> Contact Information</h6>
+                                    <hr>
+                                    <p><strong>Email:</strong><br>{{ user.email }}</p>
+                                    <p><strong>Phone:</strong><br>{{ user.phone or 'Not provided' }}</p>
+                                    <p><strong>Username:</strong><br>{{ user.username }}</p>
+                                    <p><strong>Member Since:</strong><br>{{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Medical Information -->
+                        <div class="col-md-8">
+                            <!-- Personal Details -->
+                            <div class="card mb-3 shadow-sm" style="border-left: 4px solid #43e97b;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #43e97b;"><i class="fas fa-user-circle"></i> Personal Details</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if patient_data %}
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="text-muted">Age</label>
+                                            <h5><i class="fas fa-birthday-cake" style="color: #667eea;"></i> {{ patient_data.age }} years</h5>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="text-muted">Gender</label>
+                                            <h5>
+                                                <i class="fas fa-{{ 'mars' if patient_data.gender == 'Male' else 'venus' if patient_data.gender == 'Female' else 'genderless' }}" style="color: #667eea;"></i> 
+                                                {{ patient_data.gender }}
+                                            </h5>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="text-muted">BMI</label>
+                                            <h5><i class="fas fa-weight" style="color: #667eea;"></i> {{ patient_data.bmi }}</h5>
+                                        </div>
+                                        {% if patient_data.address %}
+                                        <div class="col-md-12 mb-3">
+                                            <label class="text-muted">Address</label>
+                                            <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+                                                <i class="fas fa-map-marker-alt" style="color: #667eea;"></i> {{ patient_data.address }}
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No personal details available. Please contact your doctor to update your information.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Medical Information (Read-Only) -->
+                            <div class="card mb-3 shadow-sm" style="border-left: 4px solid #f093fb;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #f093fb;"><i class="fas fa-notes-medical"></i> Medical Information (Read-Only)</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if patient_data %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> Medical information can only be updated by your healthcare provider.
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card text-center" style="background-color: #f8f9fa;">
+                                                <div class="card-body">
+                                                    <i class="fas fa-heartbeat fa-2x mb-2" style="color: #f093fb;"></i>
+                                                    <h6 class="text-muted">Blood Pressure</h6>
+                                                    <h5 style="color: #f093fb;">{{ patient_data.blood_pressure or 'N/A' }}</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card text-center" style="background-color: #f8f9fa;">
+                                                <div class="card-body">
+                                                    <i class="fas fa-tint fa-2x mb-2" style="color: #4facfe;"></i>
+                                                    <h6 class="text-muted">Glucose Level</h6>
+                                                    <h5 style="color: #4facfe;">{{ patient_data.glucose_level }} <small>mg/dL</small></h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="text-muted">Medical History</label>
+                                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #f093fb;">
+                                                {{ patient_data.medical_history or 'No medical history recorded' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No medical information available</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Account Actions -->
+                            <div class="card shadow-sm" style="border-left: 4px solid #4facfe;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #4facfe;"><i class="fas fa-cog"></i> Account Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('patient.edit_profile') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                                            <i class="fas fa-edit"></i> Edit Basic Information
+                                        </a>
+                                        <a href="{{ url_for('auth.change_password') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">
+                                            <i class="fas fa-key"></i> Change Password
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

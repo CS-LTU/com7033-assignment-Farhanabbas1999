@@ -1,5 +1,5 @@
-from app import create_app
-from app.extensions import db
+from app import create_app, db
+from app.models import User
 from sqlalchemy import text
 
 app = create_app()
@@ -84,5 +84,23 @@ with app.app_context():
     except Exception as e:
         print(f"department: {e}")
         db.session.rollback()
+    
+    # Add the is_approved column to existing database
+    try:
+        # Try to add the column (SQLite will error if it exists)
+        with db.engine.connect() as conn:
+            conn.execute(db.text('ALTER TABLE users ADD COLUMN is_approved BOOLEAN DEFAULT 0'))
+            conn.commit()
+        print("✓ Added is_approved column to users table")
+    except Exception as e:
+        print(f"Column might already exist or error: {e}")
+    
+    # Set all existing users as approved
+    try:
+        db.session.execute(db.text('UPDATE users SET is_approved = 1'))
+        db.session.commit()
+        print("✓ Set all existing users as approved")
+    except Exception as e:
+        print(f"Error updating users: {e}")
     
     print("\n✅ Database update completed!")

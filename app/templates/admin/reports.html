@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}System Reports{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-chart-bar"></i> System Reports</h2>
+            <p class="text-muted">Overview of system statistics and analytics</p>
+        </div>
+    </div>
+
+    <!-- User Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> User Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <h3 class="text-primary">{{ stats.total_users }}</h3>
+                            <p class="text-muted">Total Users</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <h3 class="text-success">{{ stats.active_users }}</h3>
+                            <p class="text-muted">Active Users</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <h3 class="text-danger">{{ stats.inactive_users }}</h3>
+                            <p class="text-muted">Inactive Users</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <h3 class="text-info">{{ stats.total_doctors + stats.total_nurses }}</h3>
+                            <p class="text-muted">Staff Members</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Distribution -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-tag"></i> Role Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th class="text-end">Count</th>
+                                <th class="text-end">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-success">Doctors</span></td>
+                                <td class="text-end">{{ stats.total_doctors }}</td>
+                                <td class="text-end">{{ "%.1f" | format((stats.total_doctors / stats.total_users * 100) if stats.total_users > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">Nurses</span></td>
+                                <td class="text-end">{{ stats.total_nurses }}</td>
+                                <td class="text-end">{{ "%.1f" | format((stats.total_nurses / stats.total_users * 100) if stats.total_users > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">Patients</span></td>
+                                <td class="text-end">{{ stats.total_patients }}</td>
+                                <td class="text-end">{{ "%.1f" | format((stats.total_patients / stats.total_users * 100) if stats.total_users > 0 else 0) }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Appointment Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th class="text-end">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-primary">Total</span></td>
+                                <td class="text-end">{{ stats.get('total_appointments', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                                <td class="text-end">{{ stats.get('pending_appointments', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Accepted</span></td>
+                                <td class="text-end">{{ stats.get('accepted_appointments', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Rejected</span></td>
+                                <td class="text-end">{{ stats.get('rejected_appointments', 0) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-download"></i> Export Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Download system reports in various formats</p>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary" onclick="alert('PDF export coming soon!')">
+                            <i class="fas fa-file-pdf"></i> Export as PDF
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="alert('Excel export coming soon!')">
+                            <i class="fas fa-file-excel"></i> Export as Excel
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="alert('CSV export coming soon!')">
+                            <i class="fas fa-file-csv"></i> Export as CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

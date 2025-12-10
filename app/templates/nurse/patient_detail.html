@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Patient Details{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm" style="border: none; border-radius: 10px;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                    <h4 class="mb-0"><i class="fas fa-user-injured"></i> Patient Details (Read-Only)</h4>
+                    <div>
+                        <a href="{{ url_for('nurse.update_vitals', patient_id=user.id) }}" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-heartbeat"></i> Update Vitals
+                        </a>
+                        <a href="{{ url_for('nurse.patients') }}" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Patient Profile -->
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                {% if user.profile_picture %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" 
+                                         alt="Profile" 
+                                         class="rounded-circle mb-3" 
+                                         style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #667eea;">
+                                {% else %}
+                                    <i class="fas fa-user-circle fa-10x mb-3" style="color: #667eea;"></i>
+                                {% endif %}
+                                <h4>{{ user.full_name or user.username }}</h4>
+                                <p class="text-muted">{{ user.email }}</p>
+                            </div>
+                            
+                            <div class="card" style="background-color: #f8f9fa; border-left: 4px solid #667eea;">
+                                <div class="card-body">
+                                    <h6 style="color: #667eea;"><i class="fas fa-info-circle"></i> Basic Information</h6>
+                                    <hr>
+                                    <p><strong>Patient ID:</strong> {{ user.username }}</p>
+                                    <p><strong>Phone:</strong> {{ user.phone or 'N/A' }}</p>
+                                    <p><strong>Age:</strong> {{ patient_data.age if patient_data else 'N/A' }} years</p>
+                                    <p><strong>Gender:</strong> {{ patient_data.gender if patient_data else 'N/A' }}</p>
+                                    <p><strong>Assigned Doctor:</strong><br>
+                                        <span class="badge" style="background-color: #4facfe; color: white;">
+                                            Dr. {{ doctor.full_name if doctor else 'Not Assigned' }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Medical Information & Vitals -->
+                        <div class="col-md-8">
+                            <!-- Latest Vital Signs -->
+                            <div class="card mb-3 shadow-sm" style="border-left: 4px solid #43e97b;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #43e97b;"><i class="fas fa-heartbeat"></i> Latest Vital Signs</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if vital_signs_history %}
+                                        {% set latest = vital_signs_history[0] %}
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card text-center" style="background-color: #f8f9fa;">
+                                                    <div class="card-body">
+                                                        <i class="fas fa-heartbeat fa-2x mb-2" style="color: #f093fb;"></i>
+                                                        <h6 class="text-muted">Blood Pressure</h6>
+                                                        <h4 style="color: #f093fb;">{{ latest.blood_pressure }}</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card text-center" style="background-color: #f8f9fa;">
+                                                    <div class="card-body">
+                                                        <i class="fas fa-heart fa-2x mb-2" style="color: #f093fb;"></i>
+                                                        <h6 class="text-muted">Heart Rate</h6>
+                                                        <h4 style="color: #f093fb;">{{ latest.heart_rate }} <small>bpm</small></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card text-center" style="background-color: #f8f9fa;">
+                                                    <div class="card-body">
+                                                        <i class="fas fa-thermometer-half fa-2x mb-2" style="color: #f093fb;"></i>
+                                                        <h6 class="text-muted">Temperature</h6>
+                                                        <h4 style="color: #f093fb;">{{ latest.temperature }}°F</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% if latest.respiratory_rate %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card text-center" style="background-color: #f8f9fa;">
+                                                    <div class="card-body">
+                                                        <i class="fas fa-lungs fa-2x mb-2" style="color: #4facfe;"></i>
+                                                        <h6 class="text-muted">Respiratory Rate</h6>
+                                                        <h4 style="color: #4facfe;">{{ latest.respiratory_rate }} <small>breaths/min</small></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if latest.oxygen_saturation %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card text-center" style="background-color: #f8f9fa;">
+                                                    <div class="card-body">
+                                                        <i class="fas fa-wind fa-2x mb-2" style="color: #4facfe;"></i>
+                                                        <h6 class="text-muted">O2 Saturation</h6>
+                                                        <h4 style="color: #4facfe;">{{ latest.oxygen_saturation }}%</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-clock"></i> Last updated: {{ latest.created_at.strftime('%Y-%m-%d %H:%M') if latest.created_at else 'N/A' }}
+                                            by {{ latest.nurse_name }}
+                                        </p>
+                                        {% if latest.notes %}
+                                        <div class="alert alert-info mt-3">
+                                            <strong>Notes:</strong> {{ latest.notes }}
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">No vital signs recorded yet</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Medical History -->
+                            <div class="card mb-3 shadow-sm" style="border-left: 4px solid #667eea;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #667eea;"><i class="fas fa-notes-medical"></i> Medical Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if patient_data %}
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">Glucose Level</label>
+                                            <h5>{{ patient_data.glucose_level }} mg/dL</h5>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">BMI</label>
+                                            <h5>{{ patient_data.bmi }}</h5>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="text-muted">Medical History</label>
+                                            <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+                                                {{ patient_data.medical_history or 'No medical history recorded' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No medical data available</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Doctor's Instructions -->
+                            <div class="card mb-3 shadow-sm" style="border-left: 4px solid #f093fb;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #f093fb;"><i class="fas fa-stethoscope"></i> Doctor's Instructions</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if doctor_notes %}
+                                        {% for note in doctor_notes %}
+                                        <div class="alert" style="background-color: #fff3cd; border-left: 4px solid #f093fb;">
+                                            <strong><i class="fas fa-user-md"></i> {{ note.doctor_name }}</strong>
+                                            <p class="mb-0">{{ note.note }}</p>
+                                            <small class="text-muted">{{ note.created_at.strftime('%Y-%m-%d %H:%M') if note.created_at else '' }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">No doctor instructions available</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Vital Signs History -->
+                            <div class="card shadow-sm" style="border-left: 4px solid #43e97b;">
+                                <div class="card-header" style="background-color: #f8f9fa;">
+                                    <h5 class="mb-0" style="color: #43e97b;"><i class="fas fa-chart-line"></i> Vital Signs History</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if vital_signs_history %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-sm">
+                                            <thead style="background-color: #f8f9fa;">
+                                                <tr>
+                                                    <th>Date/Time</th>
+                                                    <th>BP</th>
+                                                    <th>HR</th>
+                                                    <th>Temp</th>
+                                                    <th>Updated By</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for vital in vital_signs_history %}
+                                                <tr>
+                                                    <td><small>{{ vital.created_at.strftime('%Y-%m-%d %H:%M') if vital.created_at else 'N/A' }}</small></td>
+                                                    <td><strong>{{ vital.blood_pressure }}</strong></td>
+                                                    <td>{{ vital.heart_rate }} bpm</td>
+                                                    <td>{{ vital.temperature }}°F</td>
+                                                    <td><small>{{ vital.nurse_name }}</small></td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No vital signs history available</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

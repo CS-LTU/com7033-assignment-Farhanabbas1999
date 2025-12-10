@@ -1,119 +1,214 @@
 {% extends "base.html" %}
 {% block title %}Nurse Dashboard{% endblock %}
 {% block content %}
-<style>
-    :root {
-        --primary: #3674B5;
-        --secondary: #578FCA;
-        --light: #A1E3F9;
-        --lighter: #D1F8EF;
-    }
-
-    .sidebar {
-        background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-        width: 250px;
-        position: fixed;
-        height: 100vh;
-        overflow-y: auto;
-    }
-
-    .main-content {
-        margin-left: 250px;
-        padding: 20px;
-        background-color: #f8f9fa;
-    }
-</style>
-
-<div class="d-flex" style="min-height: 100vh;">
-    <!-- Sidebar -->
-    <div class="sidebar text-white p-4">
-        <h4 class="mb-4">
-            <i class="fas fa-stethoscope"></i> {{ current_user.username }}
-        </h4>
-        <hr class="bg-light">
-        <nav class="nav flex-column">
-            <a class="nav-link text-white active" href="{{ url_for('nurse.dashboard') }}">
-                <i class="fas fa-home"></i> Dashboard
-            </a>
-            <a class="nav-link text-white" href="{{ url_for('nurse.patients') }}">
-                <i class="fas fa-users"></i> Patients
-            </a>
-            <a class="nav-link text-white" href="{{ url_for('nurse.appointments') }}">
-                <i class="fas fa-calendar"></i> Appointments
-            </a>
-            <hr class="bg-light">
-            <a class="nav-link text-white" href="{{ url_for('auth.logout') }}">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </nav>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <h2 class="mb-4">Nurse Dashboard</h2>
-
-        <!-- Stats -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white;">
-                    <div class="card-body">
-                        <h6>Total Patients</h6>
-                        <h2>{{ stats.total_patients }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
-                    <div class="card-body">
-                        <h6>Today's Patients</h6>
-                        <h2>{{ stats.today_patients }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white;">
-                    <div class="card-body">
-                        <h6>Pending Vitals</h6>
-                        <h2>{{ stats.pending_vitals }}</h2>
+<div class="container-fluid mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-user-nurse"></i> Welcome, Nurse {{ current_user.full_name or current_user.username }}!</h2>
+                            <p class="mb-0">Manage patient care and assist doctors</p>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('profile.view_profile') }}" class="btn btn-light btn-lg">
+                                <i class="fas fa-user-circle"></i> My Profile
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Patient List -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header" style="background-color: var(--lighter);">
-                        <h5 class="mb-0">Patient List</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-striped">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #f093fb;">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x mb-3" style="color: #f093fb;"></i>
+                    <h3 style="color: #f093fb;">{{ stats.total_patients }}</h3>
+                    <p class="text-muted mb-0">Total Patients</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #4facfe;">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x mb-3" style="color: #4facfe;"></i>
+                    <h3 style="color: #4facfe;">{{ stats.total_appointments }}</h3>
+                    <p class="text-muted mb-0">Appointments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #43e97b;">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-3x mb-3" style="color: #43e97b;"></i>
+                    <h3 style="color: #43e97b;">{{ stats.pending_tasks }}</h3>
+                    <p class="text-muted mb-0">Pending Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #667eea;">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-3x mb-3" style="color: #667eea;"></i>
+                    <h3 style="color: #667eea;">{{ stats.completed_today }}</h3>
+                    <p class="text-muted mb-0">Completed Today</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4 class="mb-3" style="color: #f093fb;"><i class="fas fa-bolt"></i> Quick Actions</h4>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-4x mb-3" style="color: #f093fb;"></i>
+                    <h5 class="card-title">View Patients</h5>
+                    <p class="card-text">Browse and manage all patients</p>
+                    <a href="{{ url_for('nurse.patients') }}" class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
+                        <i class="fas fa-eye"></i> View All
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-4x mb-3" style="color: #4facfe;"></i>
+                    <h5 class="card-title">Appointments</h5>
+                    <p class="card-text">Manage patient appointments</p>
+                    <a href="{{ url_for('nurse.appointments') }}" class="btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">
+                        <i class="fas fa-list"></i> View All
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-heartbeat fa-4x mb-3" style="color: #43e97b;"></i>
+                    <h5 class="card-title">Stroke Assessment</h5>
+                    <p class="card-text">Perform stroke risk assessment</p>
+                    <a href="{{ url_for('main.stroke_prediction') }}" class="btn" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">
+                        <i class="fas fa-brain"></i> Assess
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Patients -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h5 class="mb-0"><i class="fas fa-user-injured"></i> Recent Patients</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_patients %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
                             <thead>
-                                <tr style="color: var(--primary);">
+                                <tr>
                                     <th>Patient Name</th>
                                     <th>Email</th>
-                                    <th>Actions</th>
+                                    <th>Phone</th>
+                                    <th>Registered</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for patient in patients %}
+                                {% for patient in recent_patients %}
                                 <tr>
-                                    <td>{{ patient.name }}</td>
+                                    <td><strong>{{ patient.full_name or patient.username }}</strong></td>
                                     <td>{{ patient.email }}</td>
+                                    <td>{{ patient.phone or 'N/A' }}</td>
+                                    <td>{{ patient.created_at.strftime('%Y-%m-%d') if patient.created_at else 'N/A' }}</td>
                                     <td>
-                                        <a href="{{ url_for('nurse.add_vitals', patient_id=patient._id) }}" class="btn btn-sm btn-primary">Add Vitals</a>
+                                        <span class="badge bg-{{ 'success' if patient.is_active else 'danger' }}">
+                                            {{ 'Active' if patient.is_active else 'Inactive' }}
+                                        </span>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <p class="text-muted text-center">No recent patients</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Appointments -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Upcoming Appointments</h5>
+                </div>
+                <div class="card-body">
+                    {% if today_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in today_appointments %}
+                                <tr>
+                                    <td>{{ appointment.date }}</td>
+                                    <td>{{ appointment.time }}</td>
+                                    <td>{{ appointment.patient.username if appointment.patient else 'N/A' }}</td>
+                                    <td>Dr. {{ appointment.doctor.username if appointment.doctor else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if appointment.status == 'confirmed' else 'warning' }}">
+                                            {{ appointment.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No upcoming appointments</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+</style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

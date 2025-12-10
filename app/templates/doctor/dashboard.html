@@ -5,10 +5,21 @@
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h2><i class="fas fa-user-md"></i> Welcome, Dr. {{ current_user.username }}</h2>
-                    <p class="mb-0">Manage your patients, appointments, and stroke risk assessments</p>
+            <div class="card shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-user-md"></i> Welcome, Dr. {{ current_user.full_name or current_user.username }}!
+                            </h2>
+                            <p class="mb-0"><i class="fas fa-envelope"></i> {{ current_user.email }}</p>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('main.profile') }}" class="btn btn-light btn-lg">
+                                <i class="fas fa-user"></i> View Profile
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -17,38 +28,38 @@
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-info text-white">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #667eea;">
                 <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x mb-2"></i>
-                    <h3>{{ stats.total_patients }}</h3>
-                    <p class="mb-0">Total Patients</p>
+                    <i class="fas fa-user-injured fa-3x mb-3" style="color: #667eea;"></i>
+                    <h3 class="mb-1" style="color: #667eea;">{{ stats.total_patients }}</h3>
+                    <p class="text-muted mb-0">Total Patients</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #f093fb;">
                 <div class="card-body text-center">
-                    <i class="fas fa-calendar-check fa-3x mb-2"></i>
-                    <h3>{{ stats.total_appointments }}</h3>
-                    <p class="mb-0">Appointments</p>
+                    <i class="fas fa-clock fa-3x mb-3" style="color: #f093fb;"></i>
+                    <h3 class="mb-1" style="color: #f093fb;">{{ stats.pending_appointments }}</h3>
+                    <p class="text-muted mb-0">Pending Appointments</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-white">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #43e97b;">
                 <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x mb-2"></i>
-                    <h3>{{ stats.pending_appointments }}</h3>
-                    <p class="mb-0">Pending</p>
+                    <i class="fas fa-calendar-check fa-3x mb-3" style="color: #43e97b;"></i>
+                    <h3 class="mb-1" style="color: #43e97b;">{{ stats.today_appointments }}</h3>
+                    <p class="text-muted mb-0">Today's Appointments</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-danger text-white">
+            <div class="card h-100 shadow-sm" style="border-left: 4px solid #4facfe;">
                 <div class="card-body text-center">
-                    <i class="fas fa-exclamation-triangle fa-3x mb-2"></i>
-                    <h3>{{ stats.high_risk_patients }}</h3>
-                    <p class="mb-0">High Risk</p>
+                    <i class="fas fa-heartbeat fa-3x mb-3" style="color: #4facfe;"></i>
+                    <h3 class="mb-1" style="color: #4facfe;">{{ stats.total_predictions }}</h3>
+                    <p class="text-muted mb-0">Total Predictions</p>
                 </div>
             </div>
         </div>
@@ -57,189 +68,57 @@
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <h4 class="mb-3"><i class="fas fa-bolt"></i> Quick Actions</h4>
+            <h4 class="mb-3" style="color: #667eea;"><i class="fas fa-bolt"></i> Quick Actions</h4>
         </div>
         
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 hover-shadow">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
                 <div class="card-body text-center">
-                    <i class="fas fa-users fa-4x text-primary mb-3"></i>
-                    <h5 class="card-title">View All Patients</h5>
-                    <p class="card-text">Browse and manage all your patients</p>
-                    <a href="{{ url_for('doctor.view_patients') }}" class="btn btn-primary">
-                        <i class="fas fa-eye"></i> View Patients
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 hover-shadow">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-plus fa-4x text-success mb-3"></i>
-                    <h5 class="card-title">Add New Patient</h5>
-                    <p class="card-text">Register a new patient to the system</p>
-                    <a href="{{ url_for('doctor.add_patient') }}" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Add Patient
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 hover-shadow">
-                <div class="card-body text-center">
-                    <i class="fas fa-edit fa-4x text-warning mb-3"></i>
-                    <h5 class="card-title">Update Patient</h5>
-                    <p class="card-text">Update patient information and records</p>
-                    <a href="{{ url_for('doctor.view_patients') }}" class="btn btn-warning">
-                        <i class="fas fa-pen"></i> Update Patient
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 hover-shadow">
-                <div class="card-body text-center">
-                    <i class="fas fa-trash-alt fa-4x text-danger mb-3"></i>
-                    <h5 class="card-title">Delete Patient</h5>
-                    <p class="card-text">Remove patient records from system</p>
-                    <a href="{{ url_for('doctor.view_patients') }}" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Manage Records
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 hover-shadow">
-                <div class="card-body text-center">
-                    <i class="fas fa-chart-line fa-4x text-info mb-3"></i>
-                    <h5 class="card-title">Stroke Risk Trends</h5>
-                    <p class="card-text">View patient risk analysis and trends</p>
-                    <a href="{{ url_for('doctor.risk_trends') }}" class="btn btn-info">
-                        <i class="fas fa-chart-bar"></i> View Trends
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 hover-shadow">
-                <div class="card-body text-center">
-                    <i class="fas fa-calendar-alt fa-4x text-primary mb-3"></i>
+                    <i class="fas fa-calendar-alt fa-4x mb-3" style="color: #667eea;"></i>
                     <h5 class="card-title">Appointments</h5>
-                    <p class="card-text">Manage patient appointments</p>
-                    <a href="{{ url_for('doctor.appointments') }}" class="btn btn-primary">
-                        <i class="fas fa-calendar"></i> View Appointments
+                    <p class="card-text">View and manage patient appointments</p>
+                    <a href="{{ url_for('doctor.appointments') }}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                        <i class="fas fa-list"></i> View All
                     </a>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Recent Patients -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-user-injured"></i> Recent Patients</h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_patients %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Patient Name</th>
-                                    <th>Age</th>
-                                    <th>Gender</th>
-                                    <th>Last Visit</th>
-                                    <th>Risk Level</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for patient in recent_patients %}
-                                <tr>
-                                    <td>{{ patient.user.username if patient.user else 'N/A' }}</td>
-                                    <td>{{ patient.age if patient.age else 'N/A' }}</td>
-                                    <td>{{ patient.gender if patient.gender else 'N/A' }}</td>
-                                    <td>{{ patient.created_at.strftime('%Y-%m-%d') if patient.created_at else 'N/A' }}</td>
-                                    <td>
-                                        {% if patient.last_prediction_risk == 1 %}
-                                            <span class="badge bg-danger">High Risk</span>
-                                        {% elif patient.last_prediction_risk == 0 %}
-                                            <span class="badge bg-success">Low Risk</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Not Assessed</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{{ url_for('doctor.view_patient', patient_id=patient._id) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted">No recent patients</p>
-                    {% endif %}
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-4x mb-3" style="color: #43e97b;"></i>
+                    <h5 class="card-title">My Patients</h5>
+                    <p class="card-text">View all registered patients</p>
+                    <a href="{{ url_for('doctor.patients') }}" class="btn" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">
+                        <i class="fas fa-user-injured"></i> View Patients
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Upcoming Appointments -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Upcoming Appointments</h5>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-4x mb-3" style="color: #f093fb;"></i>
+                    <h5 class="card-title">Analytics</h5>
+                    <p class="card-text">View stroke prediction analytics</p>
+                    <a href="{{ url_for('doctor.analytics') }}" class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
+                        <i class="fas fa-chart-bar"></i> View Analytics
+                    </a>
                 </div>
-                <div class="card-body">
-                    {% if upcoming_appointments %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Patient</th>
-                                    <th>Reason</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for appointment in upcoming_appointments %}
-                                <tr>
-                                    <td>{{ appointment.date }}</td>
-                                    <td>{{ appointment.time }}</td>
-                                    <td>{{ appointment.patient.username if appointment.patient else 'N/A' }}</td>
-                                    <td>{{ appointment.reason[:30] }}...</td>
-                                    <td>
-                                        <span class="badge bg-{{ 'success' if appointment.status == 'confirmed' else 'warning' }}">
-                                            {{ appointment.status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ url_for('doctor.view_appointment', appointment_id=appointment._id) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted">No upcoming appointments</p>
-                    {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-heartbeat fa-4x mb-3" style="color: #4facfe;"></i>
+                    <h5 class="card-title">Predictions</h5>
+                    <p class="card-text">View stroke risk predictions</p>
+                    <a href="{{ url_for('main.stroke_prediction') }}" class="btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">
+                        <i class="fas fa-brain"></i> Predict
+                    </a>
                 </div>
             </div>
         </div>
@@ -247,12 +126,25 @@
 </div>
 
 <style>
-    .hover-shadow {
+    .hover-card {
         transition: all 0.3s ease;
+        cursor: pointer;
     }
-    .hover-shadow:hover {
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        transform: translateY(-5px);
+    
+    .hover-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
     }
 </style>
 

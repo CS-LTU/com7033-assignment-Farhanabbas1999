@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Patient Details{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-user-injured"></i> Patient Details</h4>
+                    <div>
+                        <a href="{{ url_for('doctor.edit_patient', patient_id=user.id) }}" class="btn btn-warning btn-sm me-2">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{{ url_for('doctor.patients') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Patient Profile -->
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                {% if user.profile_picture %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" 
+                                         alt="Profile" 
+                                         class="rounded-circle mb-3" 
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user-circle fa-10x text-secondary mb-3"></i>
+                                {% endif %}
+                                <h4>{{ user.full_name or user.username }}</h4>
+                                <p class="text-muted">{{ user.email }}</p>
+                            </div>
+                            
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-info-circle"></i> Basic Information</h6>
+                                    <hr>
+                                    <p><strong>Username:</strong> {{ user.username }}</p>
+                                    <p><strong>Phone:</strong> {{ user.phone or 'N/A' }}</p>
+                                    <p><strong>Age:</strong> {{ patient_data.age if patient_data else 'N/A' }} years</p>
+                                    <p><strong>Gender:</strong> {{ patient_data.gender if patient_data else 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Medical Information -->
+                        <div class="col-md-8">
+                            <div class="card mb-3">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-notes-medical"></i> Medical Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if patient_data %}
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">Blood Pressure</label>
+                                            <h5>{{ patient_data.blood_pressure }}</h5>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">Glucose Level</label>
+                                            <h5>{{ patient_data.glucose_level }} mg/dL</h5>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">BMI</label>
+                                            <h5>{{ patient_data.bmi }}</h5>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">Stroke Risk Score</label>
+                                            <h5>
+                                                {% if patient_data.stroke_risk_score %}
+                                                    <span class="badge bg-{{ 'danger' if patient_data.stroke_risk_score > 0.5 else 'success' }}">
+                                                        {{ (patient_data.stroke_risk_score * 100)|round }}%
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Not assessed</span>
+                                                {% endif %}
+                                            </h5>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="text-muted">Medical History</label>
+                                            <p>{{ patient_data.medical_history or 'No medical history recorded' }}</p>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No medical data available</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Prediction History -->
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Prediction History</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if predictions %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Prediction</th>
+                                                    <th>Probability</th>
+                                                    <th>Risk Level</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for pred in predictions %}
+                                                <tr>
+                                                    <td>{{ pred.created_at.strftime('%Y-%m-%d %H:%M') if pred.created_at else 'N/A' }}</td>
+                                                    <td>
+                                                        <span class="badge bg-{{ 'danger' if pred.prediction == 1 else 'success' }}">
+                                                            {{ 'Stroke Risk' if pred.prediction == 1 else 'No Risk' }}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ (pred.probability * 100)|round }}%</td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar bg-{{ 'danger' if pred.probability > 0.5 else 'success' }}" 
+                                                                 role="progressbar" 
+                                                                 style="width: {{ (pred.probability * 100)|round }}%">
+                                                                {{ (pred.probability * 100)|round }}%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No predictions recorded yet</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

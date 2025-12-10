@@ -1,50 +1,100 @@
 {% extends "base.html" %}
+
 {% block title %}Pending Approvals{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <h4 class="mb-0"><i class="fas fa-clock"></i> Pending User Approvals</h4>
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clock"></i> Pending User Approvals
+                        <span class="badge bg-white text-warning ms-2">{{ pending_users|length }}</span>
+                    </h4>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if pending_users %}
+                    <!-- Search Bar -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search by username, email, or role...">
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
+                        <table class="table table-striped table-hover" id="approvalsTable">
+                            <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
                                     <th>Username</th>
                                     <th>Email</th>
                                     <th>Role</th>
+                                    <th>Phone</th>
                                     <th>Registered On</th>
-                                    <th>Actions</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for user in pending_users %}
                                 <tr>
-                                    <td>{{ user.id }}</td>
-                                    <td>{{ user.username }}</td>
-                                    <td>{{ user.email }}</td>
+                                    <td><strong>{{ user.id }}</strong></td>
+                                    <td>
+                                        <i class="fas fa-user text-warning"></i>
+                                        <strong>{{ user.username }}</strong>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-envelope text-muted"></i>
+                                        {{ user.email }}
+                                    </td>
                                     <td>
                                         <span class="badge bg-info">
-                                            {{ user.role.name.title() if user.role else 'N/A' }}
+                                            {% if user.role %}
+                                                <i class="fas fa-{% if user.role.name == 'doctor' %}user-md{% elif user.role.name == 'nurse' %}user-nurse{% elif user.role.name == 'patient' %}user-injured{% else %}user{% endif %}"></i>
+                                                {{ user.role.name.title() }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
                                         </span>
                                     </td>
-                                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</td>
                                     <td>
-                                        <form method="POST" action="{{ url_for('admin.approve_user', user_id=user.id) }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-success btn-sm">
-                                                <i class="fas fa-check"></i> Approve
+                                        {% if user.phone %}
+                                            <i class="fas fa-phone text-muted"></i> {{ user.phone }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-calendar-alt text-muted"></i>
+                                        {{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <!-- View Details Button -->
+                                            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ user.id }}" title="View Details">
+                                                <i class="fas fa-eye"></i>
                                             </button>
-                                        </form>
-                                        <form method="POST" action="{{ url_for('admin.reject_user', user_id=user.id) }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject this user?')">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        </form>
+                                            
+                                            <!-- Approve Button -->
+                                            <form method="POST" action="{{ url_for('admin.approve_user', user_id=user.id) }}" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button type="submit" class="btn btn-success" title="Approve" onclick="return confirm('Approve {{ user.username }}?')">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            
+                                            <!-- Reject Button -->
+                                            <form method="POST" action="{{ url_for('admin.reject_user', user_id=user.id) }}" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button type="submit" class="btn btn-danger" title="Reject" onclick="return confirm('Are you sure you want to reject and delete {{ user.username }}? This action cannot be undone.')">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -52,15 +102,132 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No pending approvals at this time.
+                    <div class="alert alert-success text-center">
+                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        <h5>No Pending Approvals</h5>
+                        <p class="mb-0">All user registrations have been processed.</p>
                     </div>
                     {% endif %}
+                </div>
+                <div class="card-footer text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>{{ pending_users|length }}</strong> user(s) waiting for approval
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- View User Details Modals -->
+{% for user in pending_users %}
+<div class="modal fade" id="viewModal{{ user.id }}" tabindex="-1" aria-labelledby="viewModalLabel{{ user.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewModalLabel{{ user.id }}">
+                    <i class="fas fa-user-circle"></i> User Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%"><i class="fas fa-id-badge text-muted"></i> User ID:</th>
+                                <td><strong>{{ user.id }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th><i class="fas fa-user text-muted"></i> Username:</th>
+                                <td><strong>{{ user.username }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th><i class="fas fa-id-card text-muted"></i> Full Name:</th>
+                                <td>{{ user.full_name or 'Not provided' }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fas fa-envelope text-muted"></i> Email:</th>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fas fa-phone text-muted"></i> Phone:</th>
+                                <td>{{ user.phone or 'Not provided' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%"><i class="fas fa-user-tag text-muted"></i> Role:</th>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ user.role.name.title() if user.role else 'N/A' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><i class="fas fa-check-circle text-muted"></i> Status:</th>
+                                <td>
+                                    <span class="badge bg-warning">Pending Approval</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><i class="fas fa-calendar-plus text-muted"></i> Registered:</th>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <form method="POST" action="{{ url_for('admin.approve_user', user_id=user.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Approve this user?')">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin.reject_user', user_id=user.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Reject and delete this user?')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+// Search functionality
+if (document.getElementById('searchInput')) {
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const table = document.getElementById('approvalsTable');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const text = rows[i].textContent.toLowerCase();
+            if (text.indexOf(searchValue) > -1) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    });
+}
+</script>
+
+<style>
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+.table tbody tr:hover {
+    background-color: #fff3cd;
+}
+</style>
 {% endblock %}

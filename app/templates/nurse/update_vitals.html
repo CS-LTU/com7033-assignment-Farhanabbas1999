@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Update Vital Signs{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm" style="border: none; border-radius: 10px;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                    <h4 class="mb-0"><i class="fas fa-heartbeat"></i> Update Vital Signs</h4>
+                    <a href="{{ url_for('nurse.view_patient', patient_id=user.id) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Patient Info -->
+                    <div class="alert" style="background-color: #f8f9fa; border-left: 4px solid #667eea;">
+                        <div class="d-flex align-items-center">
+                            {% if user.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" 
+                                     alt="Profile" 
+                                     class="rounded-circle me-3" 
+                                     style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #667eea;">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-3x me-3" style="color: #667eea;"></i>
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-1" style="color: #2d3748;">{{ user.full_name or user.username }}</h5>
+                                <p class="mb-0 text-muted">
+                                    <i class="fas fa-envelope"></i> {{ user.email }} | 
+                                    <i class="fas fa-user"></i> Age: {{ patient_data.age if patient_data else 'N/A' }} | 
+                                    <i class="fas fa-venus-mars"></i> {{ patient_data.gender if patient_data else 'N/A' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs Form -->
+                    <form method="POST" action="{{ url_for('nurse.update_vitals', patient_id=user.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <h5 class="mb-3" style="color: #667eea;"><i class="fas fa-notes-medical"></i> Vital Signs</h5>
+                        
+                        <div class="row">
+                            <!-- Blood Pressure -->
+                            <div class="col-md-6 mb-3">
+                                <label for="blood_pressure" class="form-label">
+                                    <i class="fas fa-heartbeat" style="color: #f093fb;"></i> Blood Pressure (mmHg) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="blood_pressure" 
+                                       name="blood_pressure" 
+                                       placeholder="e.g., 120/80" 
+                                       required 
+                                       style="border-color: #667eea;">
+                                <small class="text-muted">Format: Systolic/Diastolic</small>
+                            </div>
+
+                            <!-- Heart Rate -->
+                            <div class="col-md-6 mb-3">
+                                <label for="heart_rate" class="form-label">
+                                    <i class="fas fa-heart" style="color: #f093fb;"></i> Heart Rate (bpm) <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="heart_rate" 
+                                       name="heart_rate" 
+                                       placeholder="e.g., 72" 
+                                       min="30" 
+                                       max="220" 
+                                       required 
+                                       style="border-color: #667eea;">
+                                <small class="text-muted">Beats per minute</small>
+                            </div>
+
+                            <!-- Temperature -->
+                            <div class="col-md-6 mb-3">
+                                <label for="temperature" class="form-label">
+                                    <i class="fas fa-thermometer-half" style="color: #f093fb;"></i> Temperature (°F) <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       step="0.1" 
+                                       class="form-control form-control-lg" 
+                                       id="temperature" 
+                                       name="temperature" 
+                                       placeholder="e.g., 98.6" 
+                                       min="90" 
+                                       max="110" 
+                                       required 
+                                       style="border-color: #667eea;">
+                                <small class="text-muted">Fahrenheit</small>
+                            </div>
+
+                            <!-- Respiratory Rate -->
+                            <div class="col-md-6 mb-3">
+                                <label for="respiratory_rate" class="form-label">
+                                    <i class="fas fa-lungs" style="color: #4facfe;"></i> Respiratory Rate (breaths/min)
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="respiratory_rate" 
+                                       name="respiratory_rate" 
+                                       placeholder="e.g., 16" 
+                                       min="8" 
+                                       max="40" 
+                                       style="border-color: #667eea;">
+                                <small class="text-muted">Optional</small>
+                            </div>
+
+                            <!-- Oxygen Saturation -->
+                            <div class="col-md-12 mb-3">
+                                <label for="oxygen_saturation" class="form-label">
+                                    <i class="fas fa-wind" style="color: #4facfe;"></i> Oxygen Saturation (%)
+                                </label>
+                                <input type="number" 
+                                       step="0.1" 
+                                       class="form-control form-control-lg" 
+                                       id="oxygen_saturation" 
+                                       name="oxygen_saturation" 
+                                       placeholder="e.g., 98" 
+                                       min="70" 
+                                       max="100" 
+                                       style="border-color: #667eea;">
+                                <small class="text-muted">SpO2 percentage (Optional)</small>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-md-12 mb-3">
+                                <label for="notes" class="form-label">
+                                    <i class="fas fa-comment-medical" style="color: #667eea;"></i> Clinical Notes
+                                </label>
+                                <textarea class="form-control" 
+                                          id="notes" 
+                                          name="notes" 
+                                          rows="4" 
+                                          placeholder="Any observations or additional notes..."
+                                          style="border-color: #667eea;"></textarea>
+                                <small class="text-muted">Document any relevant observations</small>
+                            </div>
+                        </div>
+
+                        <hr style="border-color: #667eea;">
+
+                        <!-- Alert Box -->
+                        <div class="alert" style="background-color: #fff3cd; border-left: 4px solid #f093fb;">
+                            <i class="fas fa-info-circle" style="color: #f093fb;"></i> 
+                            <strong>Important:</strong> Please ensure all measurements are accurate. This information will be visible to the assigned doctor.
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none; min-width: 200px;">
+                                <i class="fas fa-save"></i> Save Vital Signs
+                            </button>
+                            <a href="{{ url_for('nurse.view_patient', patient_id=user.id) }}" 
+                               class="btn btn-lg" 
+                               style="background-color: #6c757d; color: white; border: none; min-width: 200px;">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Reference Card -->
+            <div class="card mt-4 shadow-sm" style="border-left: 4px solid #4facfe;">
+                <div class="card-header" style="background-color: #f8f9fa;">
+                    <h6 class="mb-0" style="color: #4facfe;"><i class="fas fa-book-medical"></i> Normal Ranges Reference</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Blood Pressure:</strong> 90/60 - 120/80 mmHg</p>
+                            <p><strong>Heart Rate:</strong> 60-100 bpm (adults)</p>
+                            <p><strong>Temperature:</strong> 97.8°F - 99°F</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Respiratory Rate:</strong> 12-20 breaths/min</p>
+                            <p><strong>Oxygen Saturation:</strong> 95-100%</p>
+                        </div>
+                    </div>
+                    <small class="text-muted"><i class="fas fa-exclamation-triangle"></i> Values outside these ranges should be reported immediately.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .form-control-lg {
+        font-size: 1.1rem;
+        padding: 12px;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
