@@ -1,0 +1,70 @@
+# Flask Stroke Prediction App - Requirements
+# Core Security Dependencies for COM7033 Assignment
+
+# ============================================
+# Core Flask & Database
+# ============================================
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+Flask-Migrate==4.0.5
+SQLAlchemy==2.0.23
+
+# ============================================
+# Security - Input Validation & Sanitization
+# ============================================
+bleach==6.1.0  # XSS protection - HTML sanitization
+markupsafe==2.1.3  # Additional XSS protection
+email-validator==2.1.0  # Email validation
+
+# ============================================
+# Security - Encryption
+# ============================================
+cryptography==41.0.7  # Data encryption at rest (Fernet/AES)
+
+# ============================================
+# Security - Password Hashing
+# ============================================
+# Werkzeug (included with Flask) provides PBKDF2-SHA256 hashing
+Werkzeug==3.0.1
+
+# ============================================
+# Testing
+# ============================================
+pytest==7.4.3  # Testing framework
+pytest-cov==4.1.0  # Code coverage
+pytest-flask==1.3.0  # Flask testing utilities
+
+# ============================================
+# Data Processing & ML
+# ============================================
+pandas==2.1.4  # CSV data processing for analytics
+numpy==1.26.2  # Numerical operations
+scikit-learn==1.3.2  # ML model (if used)
+
+# ============================================
+# Optional - Production Deployment
+# ============================================
+gunicorn==21.2.0  # WSGI server for production
+python-dotenv==1.0.0  # Environment variable management
+
+# ============================================
+# Optional - Advanced Rate Limiting (Redis)
+# ============================================
+# Uncomment if switching from in-memory to Redis-based rate limiting
+# redis==5.0.1
+# Flask-Limiter==3.5.0
+
+# ============================================
+# Optional - Monitoring & Error Tracking
+# ============================================
+# sentry-sdk[flask]==1.39.1  # Error tracking and monitoring
+
+# ============================================
+# Development Tools
+# ============================================
+# These are optional for development but recommended
+black==23.12.1  # Code formatting
+flake8==6.1.0  # Linting
+pylint==3.0.3  # Advanced linting

@@ -8,7 +8,7 @@
         <hr class="my-4">
         {% if current_user.is_authenticated %}
             <p>Welcome, {{ current_user.username }}!</p>
-            <a class="btn btn-primary btn-lg" href="/{{ current_user.role }}/dashboard" role="button">Go to Dashboard</a>
+            <a class="btn btn-primary btn-lg" href="/{{ current_user.role.name }}/dashboard" role="button">Go to Dashboard</a>
         {% else %}
             <p>Please log in to continue.</p>
             <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}" role="button">Login</a>

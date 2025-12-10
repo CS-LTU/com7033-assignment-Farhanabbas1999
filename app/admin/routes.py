@@ -214,6 +214,28 @@ def approve_user(user_id):
     
     return redirect(url_for('admin.manage_users'))
 
+@admin_bp.route('/users/<int:user_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_user(user_id):
+    """Reject and delete a user"""
+    try:
+        user = User.query.get_or_404(user_id)
+        username = user.username
+        
+        if user.id == current_user.id:
+            flash('You cannot reject your own account!', 'danger')
+        else:
+            db.session.delete(user)
+            db.session.commit()
+            flash(f'User {username} has been rejected and deleted!', 'success')
+    except Exception as e:
+        print(f"Error rejecting user: {e}")
+        db.session.rollback()
+        flash('Error rejecting user!', 'danger')
+    
+    return redirect(url_for('admin.pending_approvals'))
+
 @admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
 @login_required
 @admin_required
@@ -517,4 +539,4 @@ def reports():
 def pending_approvals():
     """View pending user approvals"""
     pending_users = User.query.filter_by(is_active=False).all()
-    return render_template('admin/pending_approvals.html', users=pending_users)
+    return render_template('admin/pending_approvals.html', pending_users=pending_users)
