@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Patient Records{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-file-medical"></i> Patient Records (MongoDB)</h4>
+                    <div>
+                        <a href="{{ url_for('admin.view_all_predictions') }}" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-brain"></i> View All Predictions
+                        </a>
+                        <a href="{{ url_for('admin.doctor_assignments') }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-user-md"></i> Doctor Assignments
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if patients %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Email</th>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                    <th>Predictions</th>
+                                    <th>Appointments</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients %}
+                                <tr>
+                                    <td>
+                                        {% if patient.user %}
+                                            {{ patient.user.username }}
+                                        {% else %}
+                                            <span class="text-muted">User ID: {{ patient.user_id }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if patient.user %}
+                                            {{ patient.user.email }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ patient.age if patient.age else 'N/A' }}</td>
+                                    <td>{{ patient.gender if patient.gender else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ patient.prediction_count }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ patient.appointment_count }}</span>
+                                    </td>
+                                    <td>
+                                        {% if patient.created_at %}
+                                            {{ patient.created_at.strftime('%Y-%m-%d %H:%M') if patient.created_at is not string else patient.created_at }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin.view_patient_record', patient_id=patient._id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <form method="POST" action="{{ url_for('admin.delete_patient_record', patient_id=patient._id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this patient record? This action cannot be undone.')">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No patient records found in MongoDB.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

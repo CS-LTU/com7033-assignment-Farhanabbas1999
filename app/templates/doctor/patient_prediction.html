@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% block title %}Stroke Risk Prediction{% endblock %}
+{% block content %}
+<style>
+    .prediction-card {
+        border-left: 5px solid;
+        transition: transform 0.3s;
+    }
+    .prediction-card:hover {
+        transform: scale(1.02);
+    }
+    .risk-high { border-color: #dc3545; }
+    .risk-medium { border-color: #ffc107; }
+    .risk-low { border-color: #28a745; }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-heartbeat"></i> Stroke Risk Prediction</h2>
+        <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Patient Info -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-user"></i> Patient Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Name:</strong><br>
+                    {{ user.username if user else 'Unknown' }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Email:</strong><br>
+                    {{ user.email if user else 'N/A' }}
+                </div>
+                <div class="col-md-2">
+                    <strong>Age:</strong><br>
+                    {{ patient.age if patient.age else 'N/A' }}
+                </div>
+                <div class="col-md-2">
+                    <strong>Gender:</strong><br>
+                    {{ patient.gender if patient.gender else 'N/A' }}
+                </div>
+                <div class="col-md-2">
+                    <strong>BMI:</strong><br>
+                    {{ "%.1f"|format(patient.bmi) if patient.bmi else 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prediction Result -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card prediction-card risk-{{ prediction.risk_level.lower() if prediction else 'low' }}">
+                <div class="card-body text-center">
+                    <h1 class="display-3 mb-3">
+                        {% if prediction %}
+                            {% if prediction.risk_level == 'High' %}
+                                <i class="fas fa-exclamation-triangle text-danger"></i>
+                            {% elif prediction.risk_level == 'Medium' %}
+                                <i class="fas fa-exclamation-circle text-warning"></i>
+                            {% else %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% endif %}
+                        {% endif %}
+                    </h1>
+                    <h3 class="mb-3">Risk Level: 
+                        <span class="badge bg-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                            {{ prediction.risk_level if prediction else 'Low' }}
+                        </span>
+                    </h3>
+                    <h4>Stroke Probability: 
+                        <strong class="text-{{ 'danger' if prediction and prediction.probability > 0.7 else 'warning' if prediction and prediction.probability > 0.4 else 'success' }}">
+                            {{ "%.1f"|format(prediction.probability * 100) if prediction else '0' }}%
+                        </strong>
+                    </h4>
+                    <div class="progress mt-3" style="height: 30px;">
+                        <div class="progress-bar bg-{{ 'danger' if prediction and prediction.probability > 0.7 else 'warning' if prediction and prediction.probability > 0.4 else 'success' }}" 
+                             role="progressbar" 
+                             style="width: {{ prediction.probability * 100 if prediction else 0 }}%"
+                             aria-valuenow="{{ prediction.probability * 100 if prediction else 0 }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ "%.1f"|format(prediction.probability * 100) if prediction else '0' }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Gauge Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-tachometer-alt"></i> Risk Gauge</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="riskGaugeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Factors Analysis -->
+    <div class="row mb-4">
+        <!-- Bar Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Risk Factors Contribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="riskFactorsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-area"></i> Health Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="healthProfileChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Metrics -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-notes-medical"></i> Detailed Health Metrics</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-heartbeat fa-2x text-danger mb-2"></i>
+                            <h6>Hypertension</h6>
+                            <h4 class="text-{{ 'danger' if patient.hypertension else 'success' }}">
+                                {{ 'Yes' if patient.hypertension else 'No' }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-heart fa-2x text-danger mb-2"></i>
+                            <h6>Heart Disease</h6>
+                            <h4 class="text-{{ 'danger' if patient.heart_disease else 'success' }}">
+                                {{ 'Yes' if patient.heart_disease else 'No' }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tint fa-2x text-info mb-2"></i>
+                            <h6>Glucose Level</h6>
+                            <h4>{{ "%.1f"|format(patient.avg_glucose_level) if patient.avg_glucose_level else 'N/A' }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-smoking fa-2x text-warning mb-2"></i>
+                            <h6>Smoking Status</h6>
+                            <h4>{{ patient.smoking_status if patient.smoking_status else 'Unknown' }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Risk factors data from backend
+const riskFactors = {{ risk_factors | tojson | safe }};
+const prediction = {{ prediction | tojson | safe }};
+
+// 1. Risk Gauge (Doughnut Chart)
+const gaugeCtx = document.getElementById('riskGaugeChart').getContext('2d');
+const riskValue = prediction.probability * 100;
+new Chart(gaugeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Risk', 'Safe'],
+        datasets: [{
+            data: [riskValue, 100 - riskValue],
+            backgroundColor: [
+                riskValue > 70 ? '#dc3545' : riskValue > 40 ? '#ffc107' : '#28a745',
+                '#e9ecef'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        circumference: 180,
+        rotation: -90,
+        cutout: '75%',
+        plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+        }
+    }
+});
+
+// 2. Risk Factors Bar Chart
+const factorsCtx = document.getElementById('riskFactorsChart').getContext('2d');
+new Chart(factorsCtx, {
+    type: 'bar',
+    data: {
+        labels: riskFactors.map(f => f.name),
+        datasets: [{
+            label: 'Risk Contribution (%)',
+            data: riskFactors.map(f => f.value),
+            backgroundColor: riskFactors.map(f => f.color),
+            borderWidth: 1,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.x.toFixed(1) + '% risk contribution';
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// 3. Health Profile Radar Chart
+const profileCtx = document.getElementById('healthProfileChart').getContext('2d');
+new Chart(profileCtx, {
+    type: 'radar',
+    data: {
+        labels: riskFactors.map(f => f.name),
+        datasets: [{
+            label: 'Risk Profile',
+            data: riskFactors.map(f => f.value),
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgb(255, 99, 132)',
+            borderWidth: 2,
+            pointBackgroundColor: 'rgb(255, 99, 132)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(255, 99, 132)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            r: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    stepSize: 20
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

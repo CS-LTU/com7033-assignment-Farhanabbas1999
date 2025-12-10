@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Manage Doctors{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-md"></i> Doctors</h2>
+        <div>
+            <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Doctor
+            </a>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by username or email...">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Approved</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                        <tr>
+                            <td>{{ doctor.id }}</td>
+                            <td><i class="fas fa-user-md"></i> {{ doctor.username }}</td>
+                            <td>{{ doctor.email }}</td>
+                            <td>
+                                {% if doctor.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if doctor.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ 'Yes' if doctor.is_approved else 'Pending' }}
+                                </span>
+                            </td>
+                            <td>{{ doctor.created_at.strftime('%Y-%m-%d') if doctor.created_at else 'N/A' }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.edit_user', user_id=doctor.id) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=doctor.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm {% if doctor.is_active %}btn-secondary{% else %}btn-success{% endif %}">
+                                        <i class="fas fa-power-off"></i> {{ 'Deactivate' if doctor.is_active else 'Activate' }}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=doctor.id) }}" style="display:inline;" 
+                                      onsubmit="return confirm('Are you sure you want to delete this doctor?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No doctors found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Real-time search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const searchValue = this.value.toLowerCase();
+    const table = document.getElementById('dataTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        
+        if (text.includes(searchValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endblock %}

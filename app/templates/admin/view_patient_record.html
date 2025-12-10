@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Patient Record Details{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <a class="nav-link" href="{{ url_for('admin.patient_records') }}">
+                <i class="fas fa-file-medical"></i> Patient Records
+            </a>
+            
+            <!-- Patient Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user"></i> Patient Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ patient.user.username if patient.user else 'N/A' }}</p>
+                            <p><strong>Email:</strong> {{ patient.user.email if patient.user else 'N/A' }}</p>
+                            <p><strong>Age:</strong> {{ patient.age }}</p>
+                            <p><strong>Gender:</strong> {{ patient.gender }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Hypertension:</strong> {{ 'Yes' if patient.hypertension == 1 else 'No' }}</p>
+                            <p><strong>Heart Disease:</strong> {{ 'Yes' if patient.heart_disease == 1 else 'No' }}</p>
+                            <p><strong>BMI:</strong> {{ patient.bmi }}</p>
+                            <p><strong>Avg Glucose Level:</strong> {{ patient.avg_glucose_level }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictions Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-brain"></i> Prediction History ({{ predictions|length }})</h4>
+                </div>
+                <div class="card-body">
+                    {% if predictions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Prediction Result</th>
+                                    <th>Probability</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in predictions %}
+                                <tr>
+                                    <td>{{ pred.created_at.strftime('%Y-%m-%d %H:%M') if pred.created_at else 'N/A' }}</td>
+                                    <td>
+                                        {% if pred.prediction == 1 %}
+                                            <span class="badge bg-danger">High Risk</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Low Risk</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ (pred.probability * 100)|round(2) if pred.probability else 'N/A' }}%</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin.delete_prediction', prediction_id=pred._id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this prediction?')">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No predictions found</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Appointments Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-calendar-alt"></i> Appointments ({{ appointments|length }})</h4>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Doctor</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in appointments %}
+                                <tr>
+                                    <td>{{ apt.date }}</td>
+                                    <td>{{ apt.time }}</td>
+                                    <td>
+                                        {% if apt.doctor %}
+                                            Dr. {{ apt.doctor.username }}
+                                        {% else %}
+                                            <span class="text-muted">Not Assigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ apt.reason[:50] }}...</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if apt.status == 'confirmed' else 'warning' }}">
+                                            {{ apt.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No appointments found</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <h2 class="mb-4"><i class="fas fa-chart-line"></i> Stroke Prediction Analytics</h2>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Total Records</h5>
+                    <h2>{{ stroke_analytics.total_records }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5>Stroke Cases</h5>
+                    <h2>{{ stroke_analytics.stroke_distribution.stroke }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>No Stroke</h5>
+                    <h2>{{ stroke_analytics.stroke_distribution.no_stroke }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5>Predictions Made</h5>
+                    <h2>{{ stats.total_predictions }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📊 Stroke Cases by Age Group</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ageStrokeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📊 Stroke Cases by Gender</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="genderStrokeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">📊 Stroke vs Hypertension</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="hypertensionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">📊 Stroke vs Heart Disease</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="heartDiseaseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 3 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">📊 Stroke vs Smoking Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="smokingChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">📊 Stroke vs BMI Category</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="bmiChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 4 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📊 Average Glucose Level</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="glucoseAvgChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📊 Stroke by Glucose Category</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="glucoseCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const analytics = {{ stroke_analytics_json | safe }};
+
+// 1. Age vs Stroke Chart
+new Chart(document.getElementById('ageStrokeChart'), {
+    type: 'bar',
+    data: {
+        labels: analytics.age_vs_stroke.labels,
+        datasets: [{
+            label: 'Stroke Cases',
+            data: analytics.age_vs_stroke.data,
+            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// 2. Gender vs Stroke Chart
+new Chart(document.getElementById('genderStrokeChart'), {
+    type: 'pie',
+    data: {
+        labels: Object.keys(analytics.gender_vs_stroke),
+        datasets: [{
+            data: Object.values(analytics.gender_vs_stroke),
+            backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
+        }]
+    },
+    options: { responsive: true }
+});
+
+// 3. Hypertension Chart
+new Chart(document.getElementById('hypertensionChart'), {
+    type: 'bar',
+    data: {
+        labels: ['With Hypertension', 'Without Hypertension'],
+        datasets: [{
+            label: 'Stroke Cases',
+            data: [
+                analytics.hypertension_vs_stroke.with_hypertension_stroke,
+                analytics.hypertension_vs_stroke.without_hypertension_stroke
+            ],
+            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// 4. Heart Disease Chart
+new Chart(document.getElementById('heartDiseaseChart'), {
+    type: 'bar',
+    data: {
+        labels: ['With Heart Disease', 'Without Heart Disease'],
+        datasets: [{
+            label: 'Stroke Cases',
+            data: [
+                analytics.heart_disease_vs_stroke.with_heart_disease_stroke,
+                analytics.heart_disease_vs_stroke.without_heart_disease_stroke
+            ],
+            backgroundColor: 'rgba(153, 102, 255, 0.7)'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// 5. Smoking Status Chart
+new Chart(document.getElementById('smokingChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(analytics.smoking_vs_stroke),
+        datasets: [{
+            data: Object.values(analytics.smoking_vs_stroke),
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        }]
+    },
+    options: { responsive: true }
+});
+
+// 6. BMI Chart
+new Chart(document.getElementById('bmiChart'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(analytics.bmi_vs_stroke),
+        datasets: [{
+            label: 'Stroke Cases',
+            data: Object.values(analytics.bmi_vs_stroke),
+            backgroundColor: 'rgba(75, 192, 192, 0.7)'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// 7. Glucose Average Chart
+new Chart(document.getElementById('glucoseAvgChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Stroke Patients', 'No Stroke'],
+        datasets: [{
+            label: 'Average Glucose Level',
+            data: [
+                analytics.glucose_vs_stroke.stroke_avg,
+                analytics.glucose_vs_stroke.no_stroke_avg
+            ],
+            backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(75, 192, 192, 0.7)']
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// 8. Glucose Category Chart
+new Chart(document.getElementById('glucoseCategoryChart'), {
+    type: 'line',
+    data: {
+        labels: analytics.glucose_categories_vs_stroke.labels,
+        datasets: [{
+            label: 'Stroke Cases',
+            data: analytics.glucose_categories_vs_stroke.data,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

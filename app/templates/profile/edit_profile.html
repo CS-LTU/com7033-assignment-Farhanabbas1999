@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile.edit_profile') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ current_user.full_name or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ current_user.email }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ current_user.phone or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                       value="{{ current_user.date_of_birth.strftime('%Y-%m-%d') if current_user.date_of_birth else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male" {% if current_user.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if current_user.gender == 'Female' %}selected{% endif %}>Female</option>
+                                    <option value="Other" {% if current_user.gender == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="profile_picture" class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                {% if current_user.profile_picture %}
+                                <small class="text-muted">Current: {{ current_user.profile_picture }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="2">{{ current_user.address or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.bio or '' }}</textarea>
+                        </div>
+
+                        {% if current_user.role.name == 'doctor' %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="specialization" class="form-label">Specialization</label>
+                                <input type="text" class="form-control" id="specialization" name="specialization" 
+                                       value="{{ current_user.specialization or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="license_number" class="form-label">License Number</label>
+                                <input type="text" class="form-control" id="license_number" name="license_number" 
+                                       value="{{ current_user.license_number or '' }}">
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if current_user.role.name in ['doctor', 'nurse'] %}
+                        <div class="mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <input type="text" class="form-control" id="department" name="department" 
+                                   value="{{ current_user.department or '' }}">
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{{ url_for('profile.view_profile') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Profile
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

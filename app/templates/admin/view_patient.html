@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Patient Details{% endblock %}
+{% block content %}
+<style>
+    :root { --primary: #3674B5; --secondary: #578FCA; --light: #A1E3F9; --lighter: #D1F8EF; }
+    .info-card { border-left: 4px solid var(--primary); }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2><i class="fas fa-user-injured"></i> Patient Details</h2>
+        <a href="{{ url_for('admin.patients') }}" class="btn btn-secondary">← Back to Patients</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card info-card mb-3">
+                <div class="card-header" style="background-color: var(--lighter);">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Record ID:</strong><br><code>{{ patient._id }}</code></p>
+                    <p><strong>Name:</strong> {{ patient.name or 'N/A' }}</p>
+                    <p><strong>Age:</strong> {{ patient.age or 'N/A' }}</p>
+                    <p><strong>Gender:</strong> {{ patient.gender or 'N/A' }}</p>
+                    <p><strong>Email:</strong> {{ patient.email or 'N/A' }}</p>
+                    <p><strong>Phone:</strong> {{ patient.phone or 'N/A' }}</p>
+                    {% if patient.user %}
+                        <p><strong>User Account:</strong> <span class="badge bg-success">{{ patient.user.username }}</span></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header" style="background-color: var(--lighter);">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Appointments</h5>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td>{{ appt.date }}</td>
+                                    <td>{{ appt.doctor_name or 'N/A' }}</td>
+                                    <td><span class="badge bg-info">{{ appt.status or 'Scheduled' }}</span></td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin.delete_appointment', appointment_id=appt._id) }}" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this appointment?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted">No appointments found</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" style="background-color: var(--lighter);">
+                    <h5 class="mb-0"><i class="fas fa-file-medical"></i> Medical History</h5>
+                </div>
+                <div class="card-body">
+                    {% if medical_records %}
+                        <ul>
+                            {% for record in medical_records %}
+                                <li>{{ record }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No medical history recorded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

@@ -30,6 +30,7 @@ def create_app():
     from .patient.routes import patient_bp
     from .nurse.routes import nurse_bp
     from .main.routes import main_bp
+    from .profile import profile_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -37,6 +38,7 @@ def create_app():
     app.register_blueprint(patient_bp, url_prefix='/patient')
     app.register_blueprint(nurse_bp, url_prefix='/nurse')
     app.register_blueprint(main_bp)
+    app.register_blueprint(profile_bp)
 
     from .models import User
     @login_manager.user_loader

@@ -1,288 +1,260 @@
 {% extends "base.html" %}
 {% block title %}Doctor Dashboard{% endblock %}
 {% block content %}
-<style>
-    :root {
-        --primary: #3674B5;
-        --secondary: #578FCA;
-        --light: #A1E3F9;
-        --lighter: #D1F8EF;
-    }
-
-    .sidebar {
-        background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-        width: 250px;
-        position: fixed;
-        height: 100vh;
-        overflow-y: auto;
-    }
-
-    .sidebar .nav-link {
-        color: #fff !important;
-        padding: 12px 15px;
-        border-radius: 5px;
-        margin-bottom: 5px;
-        transition: all 0.3s ease;
-    }
-
-    .sidebar .nav-link:hover,
-    .sidebar .nav-link.active {
-        background-color: var(--light);
-        color: var(--primary) !important;
-    }
-
-    .stat-card {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .stat-card-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        color: white;
-    }
-
-    .stat-card-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-    }
-
-    .stat-card-info {
-        background: linear-gradient(135deg, var(--light) 0%, var(--lighter) 100%);
-        color: var(--primary);
-    }
-
-    .card {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .card-header {
-        background-color: var(--lighter);
-        border-bottom: 2px solid var(--light);
-        border-radius: 8px 8px 0 0;
-    }
-
-    .badge-primary {
-        background-color: var(--primary) !important;
-    }
-
-    .btn-primary {
-        background-color: var(--primary);
-        border-color: var(--primary);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--secondary);
-        border-color: var(--secondary);
-    }
-
-    .main-content {
-        margin-left: 250px;
-        padding: 20px;
-        background-color: #f8f9fa;
-    }
-
-    .ql-container {
-        height: 400px;
-        font-size: 14px;
-    }
-</style>
-
-<div class="d-flex" style="min-height: 100vh;">
-    <!-- Sidebar -->
-    <div class="sidebar text-white p-4">
-        <h4 class="mb-4">
-            <i class="fas fa-user-md"></i> Dr. {{ current_user.username }}
-        </h4>
-        <hr class="bg-light">
-        <nav class="nav flex-column">
-            <a class="nav-link active" href="{{ url_for('doctor.dashboard') }}">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
-            <a class="nav-link" href="{{ url_for('doctor.appointments') }}">
-                <i class="fas fa-calendar-check"></i> Appointments
-            </a>
-            <a class="nav-link" href="{{ url_for('doctor.patients') }}">
-                <i class="fas fa-users"></i> Patients
-            </a>
-            <a class="nav-link" href="{{ url_for('doctor.payments') }}">
-                <i class="fas fa-credit-card"></i> Payments
-            </a>
-            <a class="nav-link" href="{{ url_for('doctor.profile') }}">
-                <i class="fas fa-user-circle"></i> Profile
-            </a>
-            <hr class="bg-light">
-            <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </nav>
+<div class="container-fluid mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h2><i class="fas fa-user-md"></i> Welcome, Dr. {{ current_user.username }}</h2>
+                    <p class="mb-0">Manage your patients, appointments, and stroke risk assessments</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Search Bar -->
-        <div class="mb-4">
-            <input type="text" class="form-control" placeholder="🔍 Search patients..." style="border: 2px solid var(--primary); border-radius: 8px; padding: 10px;">
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card stat-card stat-card-primary">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Total Patients</h6>
-                        <h2 class="mb-0">{{ stats.total_patients }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card stat-card-success">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Today's Patients</h6>
-                        <h2 class="mb-0">{{ stats.today_patients }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card stat-card-info">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Today's Appointments</h6>
-                        <h2 class="mb-0">{{ stats.today_appointments }}</h2>
-                    </div>
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x mb-2"></i>
+                    <h3>{{ stats.total_patients }}</h3>
+                    <p class="mb-0">Total Patients</p>
                 </div>
             </div>
         </div>
-
-        <!-- Charts & Calendar Row -->
-        <div class="row mb-4">
-            <!-- Chart -->
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Patient Statistics</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="patientChart"></canvas>
-                    </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x mb-2"></i>
+                    <h3>{{ stats.total_appointments }}</h3>
+                    <p class="mb-0">Appointments</p>
                 </div>
             </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x mb-2"></i>
+                    <h3>{{ stats.pending_appointments }}</h3>
+                    <p class="mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-2"></i>
+                    <h3>{{ stats.high_risk_patients }}</h3>
+                    <p class="mb-0">High Risk</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Calendar -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Calendar</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="calendar" style="max-height: 350px; overflow-y: auto;"></div>
-                    </div>
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4 class="mb-3"><i class="fas fa-bolt"></i> Quick Actions</h4>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-4x text-primary mb-3"></i>
+                    <h5 class="card-title">View All Patients</h5>
+                    <p class="card-text">Browse and manage all your patients</p>
+                    <a href="{{ url_for('doctor.view_patients') }}" class="btn btn-primary">
+                        <i class="fas fa-eye"></i> View Patients
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Next Appointments -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Upcoming Appointments</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-striped">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-plus fa-4x text-success mb-3"></i>
+                    <h5 class="card-title">Add New Patient</h5>
+                    <p class="card-text">Register a new patient to the system</p>
+                    <a href="{{ url_for('doctor.add_patient') }}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add Patient
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-edit fa-4x text-warning mb-3"></i>
+                    <h5 class="card-title">Update Patient</h5>
+                    <p class="card-text">Update patient information and records</p>
+                    <a href="{{ url_for('doctor.view_patients') }}" class="btn btn-warning">
+                        <i class="fas fa-pen"></i> Update Patient
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-trash-alt fa-4x text-danger mb-3"></i>
+                    <h5 class="card-title">Delete Patient</h5>
+                    <p class="card-text">Remove patient records from system</p>
+                    <a href="{{ url_for('doctor.view_patients') }}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Manage Records
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-4x text-info mb-3"></i>
+                    <h5 class="card-title">Stroke Risk Trends</h5>
+                    <p class="card-text">View patient risk analysis and trends</p>
+                    <a href="{{ url_for('doctor.risk_trends') }}" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> View Trends
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-4x text-primary mb-3"></i>
+                    <h5 class="card-title">Appointments</h5>
+                    <p class="card-text">Manage patient appointments</p>
+                    <a href="{{ url_for('doctor.appointments') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar"></i> View Appointments
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Patients -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-injured"></i> Recent Patients</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_patients %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
                             <thead>
-                                <tr style="color: var(--primary);">
-                                    <th>#</th>
+                                <tr>
                                     <th>Patient Name</th>
-                                    <th>Time</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                    <th>Last Visit</th>
+                                    <th>Risk Level</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for apt in appointments %}
+                                {% for patient in recent_patients %}
                                 <tr>
-                                    <td>{{ apt.id }}</td>
-                                    <td>{{ apt.patient }}</td>
-                                    <td>{{ apt.time }}</td>
+                                    <td>{{ patient.user.username if patient.user else 'N/A' }}</td>
+                                    <td>{{ patient.age if patient.age else 'N/A' }}</td>
+                                    <td>{{ patient.gender if patient.gender else 'N/A' }}</td>
+                                    <td>{{ patient.created_at.strftime('%Y-%m-%d') if patient.created_at else 'N/A' }}</td>
                                     <td>
-                                        <span class="badge {% if apt.status == 'Confirmed' %}bg-success{% else %}bg-warning{% endif %}">
-                                            {{ apt.status }}
-                                        </span>
+                                        {% if patient.last_prediction_risk == 1 %}
+                                            <span class="badge bg-danger">High Risk</span>
+                                        {% elif patient.last_prediction_risk == 0 %}
+                                            <span class="badge bg-success">Low Risk</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Not Assessed</span>
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary">View</button>
-                                        <button class="btn btn-sm btn-danger">Cancel</button>
+                                        <a href="{{ url_for('doctor.view_patient', patient_id=patient._id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <p class="text-muted">No recent patients</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Upcoming Appointments</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in upcoming_appointments %}
+                                <tr>
+                                    <td>{{ appointment.date }}</td>
+                                    <td>{{ appointment.time }}</td>
+                                    <td>{{ appointment.patient.username if appointment.patient else 'N/A' }}</td>
+                                    <td>{{ appointment.reason[:30] }}...</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if appointment.status == 'confirmed' else 'warning' }}">
+                                            {{ appointment.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('doctor.view_appointment', appointment_id=appointment._id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No upcoming appointments</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-<!-- Vanilla Calendar Pro -->
-<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.0.0/build/vanilla-calendar.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.0.0/build/vanilla-calendar.min.js"></script>
-<!-- FontAwesome -->
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        transform: translateY(-5px);
+    }
+</style>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<script>
-    // Patient Statistics Chart with custom colors
-    const ctx = document.getElementById('patientChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['New Patients', 'Old Patients', 'Total Patients'],
-            datasets: [{
-                label: 'Patient Count',
-                data: [12, 30, 42],
-                backgroundColor: ['#3674B5', '#578FCA', '#A1E3F9'],
-                borderColor: ['#3674B5', '#578FCA', '#A1E3F9'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-
-    // Simple Calendar using Vanilla Calendar
-    new VanillaCalendar({
-        target: '#calendar',
-        type: 'default',
-        settings: {
-            lang: 'en',
-            iso8601: false,
-            max: null,
-            min: null,
-            range: {
-                disablePast: false,
-                disableFuture: false
-            },
-            selection: {
-                day: 'single',
-                month: 'single'
-            },
-            popups: [],
-            visibility: {
-                weekend: true,
-                today: true,
-                outside: false
-            }
-        }
-    }).init();
-</script>
 {% endblock %}
